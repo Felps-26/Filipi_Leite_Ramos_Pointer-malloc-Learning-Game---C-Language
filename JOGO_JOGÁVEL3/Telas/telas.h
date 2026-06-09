@@ -25,6 +25,10 @@ void UpdateButtonsPause(GameState *game, Vector2 mouse);
 void UpdateButtonsGameOver(GameState *game, Vector2 mouse);
 void UpdateButtonsVitoria(GameState *game, Vector2 mouse);
 void UpdateButtonsSkins(GameState *game, Vector2 mouse);
+
+// Tela de Configurações
+void DrawTelaSettings(GameState *game, Font font);
+void UpdateButtonsSettings(GameState *game, Vector2 mouse, GameScreen backScreen);
 // Funções de desenho e atualização das telas de seleção de save/load
 void DrawTelaSaveSelect(GameState *game, Font font, Vector2 mouse, Texture2D slotTextures[3], bool slotTexturesLoaded[3]);
 void DrawTelaLoadSelect(GameState *game, Font font, Vector2 mouse, Texture2D slotTextures[3], bool slotTexturesLoaded[3]);

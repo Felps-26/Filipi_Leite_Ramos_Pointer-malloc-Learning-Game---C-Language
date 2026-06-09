@@ -38,29 +38,15 @@ int main(void)
     GameState game;
     memset(&game, 0, sizeof(GameState));
     game.currentScreen = SCREEN_MENU;
+    game.masterVolume = 1.0f; // Default volume
+    SetMasterVolume(game.masterVolume);
     
-    // Load Textures
-    game.heroSkins[0] = LoadTexture("Assets/Sprites/Hero/skin0_astronaut.png");
-    game.heroSkins[1] = LoadTexture("Assets/Sprites/Hero/skin1_exterminator.png");
-    game.heroSkins[2] = LoadTexture("Assets/Sprites/Hero/skin2_specter.png");
-    game.heroSkins[3] = LoadTexture("Assets/Sprites/Hero/skin3_solarknight.png");
-    game.heroSkins[4] = LoadTexture("Assets/Sprites/Hero/skin4_glitch.png");
-    
-    game.enemyTiers[0] = LoadTexture("Assets/Sprites/Enemies/Tier1/alien.png");
-    game.enemyTiers[1] = LoadTexture("Assets/Sprites/Enemies/Tier2/deformed.png");
-    game.enemyTiers[2] = LoadTexture("Assets/Sprites/Enemies/Tier3/distorcido.png");
-    game.enemyTiers[3] = LoadTexture("Assets/Sprites/Enemies/Tier3/boss_disforme.png");
-    
-    game.projSprites[0] = LoadTexture("Assets/Sprites/Projectiles/acid_arc.png");
-    game.projSprites[1] = LoadTexture("Assets/Sprites/Projectiles/bullet_spread.png");
-    game.projSprites[2] = LoadTexture("Assets/Sprites/Projectiles/void_bolt.png");
-    game.projSprites[3] = LoadTexture("Assets/Sprites/Projectiles/void_bolt.png"); // Reusing for boss for now
-
     // Variaveis de controle dos slots de save, texturas e screenshots
     Texture2D slotTextures[3] = { 0 };
     bool slotTexturesLoaded[3] = { false };
     GameScreen previousScreen = SCREEN_MENU;
     GameScreen loadSelectBackScreen = SCREEN_MENU;
+    GameScreen settingsBackScreen = SCREEN_MENU;
     Image screenshotTemp = { 0 };
     bool hasScreenshotTemp = false;
 
@@ -198,6 +184,11 @@ int main(void)
 
             case SCREEN_CONTROLS:
                 UpdateButtonsControles(&game, g_virtualMouse);
+                break;
+
+            case SCREEN_SETTINGS:
+                UpdateButtonsSettings(&game, g_virtualMouse, settingsBackScreen);
+                SetMasterVolume(game.masterVolume);
                 break;
 
             case SCREEN_GAMEPLAY:
@@ -408,6 +399,12 @@ int main(void)
                     game.slotsMeta[i] = CarregarMetadadosSlot(i + 1);
                 }
             }
+
+            // Entrando na tela de configurações
+            if (game.currentScreen == SCREEN_SETTINGS)
+            {
+                settingsBackScreen = previousScreen;
+            }
         }
 
         previousScreen = game.currentScreen;
@@ -470,6 +467,10 @@ int main(void)
                 DrawTelaControles(&game, g_gameFont);
                 break;
 
+            case SCREEN_SETTINGS:
+                DrawTelaSettings(&game, g_gameFont);
+                break;
+
             case SCREEN_GAMEPLAY:
                 DrawHUD(&game, g_gameFont);
                 break;
@@ -508,10 +509,6 @@ finalizacao:
         UnloadMusicStream(musicB);
     }
     CloseAudioDevice();
-
-    for (int i = 0; i < 5; i++) UnloadTexture(game.heroSkins[i]);
-    for (int i = 0; i < 4; i++) UnloadTexture(game.enemyTiers[i]);
-    for (int i = 0; i < 4; i++) UnloadTexture(game.projSprites[i]);
 
     UnloadRenderTexture(target);
     if (g_gameFont.texture.id != GetFontDefault().texture.id)

@@ -99,22 +99,7 @@ void InitGame(GameState *game)
         tempSkin = game->player.activeSkin;
     }
 
-    // Preserva texturas carregadas para não fechar o jogo
-    Texture2D tempHeroSkins[5] = { 0 };
-    Texture2D tempEnemyTiers[4] = { 0 };
-    Texture2D tempProjSprites[4] = { 0 };
-    if (game != NULL) {
-        memcpy(tempHeroSkins, game->heroSkins, sizeof(tempHeroSkins));
-        memcpy(tempEnemyTiers, game->enemyTiers, sizeof(tempEnemyTiers));
-        memcpy(tempProjSprites, game->projSprites, sizeof(tempProjSprites));
-    }
-
-    // Limpa o estado global
-    *game = (GameState){ 0 };
-
-    memcpy(game->heroSkins, tempHeroSkins, sizeof(tempHeroSkins));
-    memcpy(game->enemyTiers, tempEnemyTiers, sizeof(tempEnemyTiers));
-    memcpy(game->projSprites, tempProjSprites, sizeof(tempProjSprites));
+    memset(game, 0, sizeof(GameState));
 
     if (tempName[0] != '\0')
     {
@@ -804,20 +789,9 @@ void CarregarJogoSlot(GameState *game, int slot)
         float shakeOld = game->screenShake;
         GameScreen oldScreen = game->currentScreen;
 
-        // Preserva texturas carregadas
-        Texture2D tempHeroSkins[5];
-        Texture2D tempEnemyTiers[4];
-        Texture2D tempProjSprites[4];
-        memcpy(tempHeroSkins, game->heroSkins, sizeof(tempHeroSkins));
-        memcpy(tempEnemyTiers, game->enemyTiers, sizeof(tempEnemyTiers));
-        memcpy(tempProjSprites, game->projSprites, sizeof(tempProjSprites));
-
         // Limpa estados de buffs temporários
-        *game = (GameState){ 0 };
+        memset(game, 0, sizeof(GameState));
 
-        memcpy(game->heroSkins, tempHeroSkins, sizeof(tempHeroSkins));
-        memcpy(game->enemyTiers, tempEnemyTiers, sizeof(tempEnemyTiers));
-        memcpy(game->projSprites, tempProjSprites, sizeof(tempProjSprites));
         game->currentScreen = oldScreen;
         game->screenShake = shakeOld;
 

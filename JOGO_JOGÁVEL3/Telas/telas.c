@@ -15,18 +15,20 @@ static void DrawSciFiBox(Rectangle r, Color col);
 // DEFINIÇÃO DOS BOTÕES DAS TELAS (GLOBAIS DA UI)
 // ============================================================================
 static UIButton menuButtons[] = {
-    { { 490, 265, 300, 45 }, "NEW GAME", false, false },
-    { { 490, 318, 300, 45 }, "LOAD GAME", false, false },
-    { { 490, 371, 300, 45 }, "SKINS", false, false },
-    { { 490, 424, 300, 45 }, "CONTROLS", false, false },
-    { { 490, 477, 300, 45 }, "EXIT", false, false }
+    { { 490, 240, 300, 45 }, "NEW GAME", false, false },
+    { { 490, 293, 300, 45 }, "LOAD GAME", false, false },
+    { { 490, 346, 300, 45 }, "SKINS", false, false },
+    { { 490, 399, 300, 45 }, "CONTROLS", false, false },
+    { { 490, 452, 300, 45 }, "SETTINGS", false, false },
+    { { 490, 505, 300, 45 }, "EXIT", false, false }
 };
 
 static UIButton pauseButtons[] = {
-    { { 490, 220, 300, 50 }, "RESUME GAME", false, false },
-    { { 490, 290, 300, 50 }, "SAVE PROGRESS", false, false },
-    { { 490, 360, 300, 50 }, "LOAD PREVIOUS", false, false },
-    { { 490, 430, 300, 50 }, "MAIN MENU", false, false }
+    { { 490, 185, 300, 50 }, "RESUME GAME", false, false },
+    { { 490, 255, 300, 50 }, "SAVE PROGRESS", false, false },
+    { { 490, 325, 300, 50 }, "LOAD PREVIOUS", false, false },
+    { { 490, 395, 300, 50 }, "SETTINGS", false, false },
+    { { 490, 465, 300, 50 }, "MAIN MENU", false, false }
 };
 
 static UIButton controlsButton = { { 490, 580, 300, 50 }, "BACK", false, false };
@@ -232,7 +234,7 @@ void DrawTelaMenu(GameState *game, Font font, float time)
     }
 
     // Desenha Botões do Menu
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < 6; i++)
     {
         DrawButton(menuButtons[i], font, (i == 1) ? anySaveExists : true);
     }
@@ -332,7 +334,7 @@ bool UpdateButtonsMenu(GameState *game, Vector2 mouse)
     // Evita hover e clique acidentais nos botões do menu durante a digitação
     if (!game->nameInputActive)
     {
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < 6; i++)
         {
             if (i == 1 && !anySaveExists)
             {
@@ -347,7 +349,7 @@ bool UpdateButtonsMenu(GameState *game, Vector2 mouse)
     }
     else
     {
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < 6; i++)
         {
             menuButtons[i].hover = false;
             menuButtons[i].clicked = false;
@@ -395,8 +397,12 @@ bool UpdateButtonsMenu(GameState *game, Vector2 mouse)
     {
         game->currentScreen = SCREEN_CONTROLS;
     }
+    else if (menuButtons[4].clicked) // CONFIGURACOES
+    {
+        game->currentScreen = SCREEN_SETTINGS;
+    }
 
-    return menuButtons[4].clicked; // Retorna true se clicou em SAIR
+    return menuButtons[5].clicked; // Retorna true se clicou em SAIR
 }
 
 // ============================================================================
@@ -460,7 +466,7 @@ void DrawTelaPausa(GameState *game, Font font)
 
     DrawTextEx(font, "GAME PAUSED", (Vector2){ 540, 165 }, 28.0f, 1.0f, (Color){ 0, 229, 255, 255 });
 
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 5; i++)
     {
         DrawButton(pauseButtons[i], font, true);
     }
@@ -468,7 +474,7 @@ void DrawTelaPausa(GameState *game, Font font)
 
 void UpdateButtonsPause(GameState *game, Vector2 mouse)
 {
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 5; i++)
     {
         UpdateBtnState(&pauseButtons[i], mouse);
     }
@@ -495,7 +501,11 @@ void UpdateButtonsPause(GameState *game, Vector2 mouse)
         }
         game->currentScreen = SCREEN_LOAD_SELECT;
     }
-    else if (pauseButtons[3].clicked) // MENU
+    else if (pauseButtons[3].clicked) // CONFIGURACOES
+    {
+        game->currentScreen = SCREEN_SETTINGS;
+    }
+    else if (pauseButtons[4].clicked) // MENU
     {
         game->currentScreen = SCREEN_MENU;
     }
@@ -954,25 +964,33 @@ void DrawTelaGameplay(GameState *game, Font font, bool drawHUD)
         {
             Enemy *enemy = &game->enemies[i];
             
-            // Texture rendering
-            Texture2D tex = game->enemyTiers[enemy->tier];
-            if (tex.id != 0)
-            {
-                float srcSize = (enemy->tier == TIER_3_BOSS) ? 512.0f : 128.0f;
-                float destSize = (enemy->tier == TIER_3_BOSS) ? 512.0f : 128.0f;
-                
-                Rectangle sourceRec = { enemy->currentFrame * srcSize, enemy->spriteRow * srcSize, srcSize, srcSize };
-                // Flip texture se indo para esquerda
-                if (enemy->position.x > game->player.position.x)
-                {
-                    sourceRec.width = -srcSize;
-                }
-                
-                Rectangle destRec = { enemy->position.x, enemy->position.y, destSize, destSize };
-                Vector2 origin = { destSize / 2.0f, destSize / 2.0f };
-                
-                Color tint = (enemy->state == HURT) ? RED : WHITE;
-                DrawTexturePro(tex, sourceRec, destRec, origin, 0.0f, tint);
+            float destSize = (enemy->tier == TIER_3_BOSS) ? 140.0f : 45.0f;
+            Vector2 pos = enemy->position;
+            
+            Color enemyCol = RED;
+            if (enemy->state == HURT) {
+                enemyCol = WHITE;
+            } else {
+                if (enemy->tier == TIER_1) enemyCol = GREEN;
+                else if (enemy->tier == TIER_2) enemyCol = ORANGE;
+                else if (enemy->tier == TIER_3) enemyCol = PURPLE;
+                else enemyCol = MAROON; // BOSS
+            }
+            
+            // Shape rendering based on tier
+            if (enemy->tier == TIER_1) {
+                DrawRectangle(pos.x - destSize/2, pos.y - destSize/2, destSize, destSize, enemyCol);
+                DrawRectangleLines(pos.x - destSize/2, pos.y - destSize/2, destSize, destSize, WHITE);
+            } else if (enemy->tier == TIER_2) {
+                DrawPoly(pos, 3, destSize/1.5f, enemy->frameTimer * 15.0f, enemyCol);
+                DrawPolyLines(pos, 3, destSize/1.5f, enemy->frameTimer * 15.0f, WHITE);
+            } else if (enemy->tier == TIER_3) {
+                DrawPoly(pos, 5, destSize/1.5f, enemy->frameTimer * 5.0f, enemyCol);
+                DrawPolyLines(pos, 5, destSize/1.5f, enemy->frameTimer * 5.0f, WHITE);
+            } else { // BOSS
+                DrawPoly(pos, 8, destSize/1.5f, enemy->frameTimer * 2.0f, enemyCol);
+                DrawPolyLines(pos, 8, destSize/1.5f, enemy->frameTimer * 2.0f, WHITE);
+                DrawCircle(pos.x, pos.y, destSize/4, BLACK);
             }
             
             // Barra de HP individual acima do inimigo
@@ -999,52 +1017,42 @@ void DrawTelaGameplay(GameState *game, Font font, bool drawHUD)
         if (game->projectiles[i].active)
         {
             Projectile *p = &game->projectiles[i];
-            Texture2D tex = game->projSprites[p->type];
-            if (tex.id != 0)
-            {
-                float srcSize = 32.0f;
-                Rectangle sourceRec = { p->currentFrame * srcSize, 0, srcSize, srcSize };
-                Rectangle destRec = { p->position.x, p->position.y, srcSize * 2, srcSize * 2 };
-                Vector2 origin = { srcSize, srcSize };
-                
-                float rot = atan2f(p->velocity.y, p->velocity.x) * RAD2DEG;
-                DrawTexturePro(tex, sourceRec, destRec, origin, rot, WHITE);
-            }
+            float srcSize = 12.0f;
+            Color pCol = YELLOW;
+            if (p->type == PROJ_ACID_ARC) pCol = LIME;
+            else if (p->type == PROJ_VOID_BOLT) pCol = MAGENTA;
+            else if (p->type == PROJ_BOSS_BULLET) pCol = RED;
+            
+            DrawCircle(p->position.x, p->position.y, srcSize, pCol);
+            DrawCircleLines(p->position.x, p->position.y, srcSize, WHITE);
         }
     }
 
     // C. Desenha o Herói (Sprite Baseado na Skin Ativa)
     float playerSize = 45.0f; // Para colisões ou hitbox visuais (se precisar)
     
-    Texture2D pTex = game->heroSkins[game->player.activeSkin];
-    if (pTex.id != 0)
-    {
-        float srcSize = 128.0f;
-        Rectangle sourceRec = { game->player.currentFrame * srcSize, game->player.spriteRow * srcSize, srcSize, srcSize };
-        
-        Vector2 mouseRaw = GetMousePosition();
-        Vector2 virtualMouse; // Converte tela física em virtual
-        float scaleX = (float)GetScreenWidth() / SCREEN_WIDTH;
-        float scaleY = (float)GetScreenHeight() / SCREEN_HEIGHT;
-        float scale = (scaleX < scaleY) ? scaleX : scaleY;
-        float mOffsetX = (GetScreenWidth() - (SCREEN_WIDTH * scale)) * 0.5f;
-        float mOffsetY = (GetScreenHeight() - (SCREEN_HEIGHT * scale)) * 0.5f;
-        virtualMouse.x = (mouseRaw.x - mOffsetX) / scale;
-        virtualMouse.y = (mouseRaw.y - mOffsetY) / scale;
-        Vector2 worldMouse = GetScreenToWorld2D(virtualMouse, game->camera);
-        
-        if (worldMouse.x < game->player.position.x)
-        {
-            sourceRec.width = -srcSize; // Flip horizontal
-        }
-        
-        Rectangle destRec = { game->player.position.x, game->player.position.y, srcSize, srcSize };
-        Vector2 origin = { srcSize / 2.0f, srcSize / 2.0f };
-        
-        Color tint = WHITE;
-        if (game->player.attackBoostTimer > 0.0f) tint = GOLD;
-        
-        DrawTexturePro(pTex, sourceRec, destRec, origin, 0.0f, tint);
+    Vector2 pPos = game->player.position;
+    bool isBoosted = (game->player.attackBoostTimer > 0.0f);
+    Color pCol = isBoosted ? GOLD : WHITE;
+    
+    int skin = game->player.activeSkin;
+    
+    // Draw base shape based on skin
+    if (skin == 0) { // Astronaut
+        DrawRectangle(pPos.x - playerSize/2, pPos.y - playerSize/2, playerSize, playerSize, SKYBLUE);
+        DrawRectangle(pPos.x - playerSize/4, pPos.y - playerSize/4, playerSize/2, playerSize/2, pCol);
+    } else if (skin == 1) { // Exterminator Bot
+        DrawRectangle(pPos.x - playerSize/2, pPos.y - playerSize/2, playerSize, playerSize, DARKGRAY);
+        DrawCircle(pPos.x, pPos.y, playerSize/4, !isBoosted ? RED : pCol);
+    } else if (skin == 2) { // Specter
+        DrawCircle(pPos.x, pPos.y, playerSize/1.5f, Fade(PURPLE, 0.8f));
+        DrawCircle(pPos.x, pPos.y, playerSize/4, !isBoosted ? BLACK : pCol);
+    } else if (skin == 3) { // Solar Knight
+        DrawPoly(pPos, 6, playerSize/1.5f, 0, ORANGE);
+        DrawPoly(pPos, 6, playerSize/3, 0, !isBoosted ? YELLOW : pCol);
+    } else { // Glitch Form
+        Color glitchCol = ((int)(GetTime() * 10) % 2 == 0) ? MAGENTA : LIME;
+        DrawRectangle(pPos.x - playerSize/2, pPos.y - playerSize/2, playerSize, playerSize, !isBoosted ? glitchCol : pCol);
     }
 
     // D. Efeito do Escudo (Circulo ciano translúcido ao redor)
@@ -1456,15 +1464,26 @@ void DrawTelaSkins(GameState *game, Font font)
     
     DrawTextEx(font, "PREVIEW", (Vector2){ 780, 170 }, 28.0f, 1.0f, YELLOW);
     
-    // Desenha o frame atual da skin selecionada no preview
-    Texture2D tex = game->heroSkins[skinSelecionadaPreview];
-    if (tex.id != 0)
-    {
-        // Pega um frame de idle (linha 0) para preview
-        int frame = (int)(GetTime() * 6.0f) % 4; // Animação rápida pra preview
-        Rectangle sourceRec = { frame * 128.0f, 0.0f, 128.0f, 128.0f };
-        Rectangle destRec = { 720, 240, 256, 256 }; // Duplica o tamanho
-        DrawTexturePro(tex, sourceRec, destRec, (Vector2){ 128, 128 }, 0.0f, WHITE);
+    // Desenha a forma atual da skin selecionada no preview
+    Vector2 pPos = { 848, 368 }; // Centro da caixa do preview
+    float playerSize = 100.0f;
+    int skin = skinSelecionadaPreview;
+    
+    if (skin == 0) { // Astronaut
+        DrawRectangle(pPos.x - playerSize/2, pPos.y - playerSize/2, playerSize, playerSize, SKYBLUE);
+        DrawRectangle(pPos.x - playerSize/4, pPos.y - playerSize/4, playerSize/2, playerSize/2, WHITE);
+    } else if (skin == 1) { // Exterminator Bot
+        DrawRectangle(pPos.x - playerSize/2, pPos.y - playerSize/2, playerSize, playerSize, DARKGRAY);
+        DrawCircle(pPos.x, pPos.y, playerSize/4, RED);
+    } else if (skin == 2) { // Specter
+        DrawCircle(pPos.x, pPos.y, playerSize/1.5f, Fade(PURPLE, 0.8f));
+        DrawCircle(pPos.x, pPos.y, playerSize/4, BLACK);
+    } else if (skin == 3) { // Solar Knight
+        DrawPoly(pPos, 6, playerSize/1.5f, 0, ORANGE);
+        DrawPoly(pPos, 6, playerSize/3, 0, YELLOW);
+    } else { // Glitch Form
+        Color glitchCol = ((int)(GetTime() * 10) % 2 == 0) ? MAGENTA : LIME;
+        DrawRectangle(pPos.x - playerSize/2, pPos.y - playerSize/2, playerSize, playerSize, glitchCol);
     }
     
     DrawButton(skinsBtnVoltar, font, true);
@@ -1490,5 +1509,57 @@ void UpdateButtonsSkins(GameState *game, Vector2 mouse)
                 game->player.activeSkin = i;
             }
         }
+    }
+}
+
+// ============================================================================
+// 10. TELA: SETTINGS
+// ============================================================================
+static UIButton settingsBtnVoltar = { { 490, 600, 300, 50 }, "BACK", false, false };
+
+void DrawTelaSettings(GameState *game, Font font)
+{
+    DrawRectangleGradientV(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 
+                           (Color){ 10, 8, 20, 255 }, (Color){ 20, 12, 36, 255 });
+
+    DrawTextEx(font, "SETTINGS", (Vector2){ 540, 60 }, 42.0f, 1.5f, SKYBLUE);
+
+    DrawSciFiBox((Rectangle){ 340, 150, 600, 400 }, (Color){ 0, 229, 255, 255 });
+    
+    DrawTextEx(font, "AUDIO", (Vector2){ 380, 170 }, 28.0f, 1.0f, YELLOW);
+    DrawLine(380, 205, 900, 205, Fade(YELLOW, 0.5f));
+    
+    DrawTextEx(font, "MASTER VOLUME", (Vector2){ 380, 250 }, 24.0f, 1.0f, WHITE);
+    
+    Rectangle sliderBg = { 600, 250, 300, 20 };
+    Rectangle sliderFill = { 600, 250, 300 * game->masterVolume, 20 };
+    
+    DrawRectangleRounded(sliderBg, 0.5f, 4, Fade(DARKGRAY, 0.8f));
+    DrawRectangleRounded(sliderFill, 0.5f, 4, SKYBLUE);
+    DrawRectangleRoundedLines(sliderBg, 0.5f, 4, WHITE);
+    
+    char volText[16];
+    sprintf(volText, "%d%%", (int)(game->masterVolume * 100));
+    DrawTextEx(font, volText, (Vector2){ 920, 248 }, 24.0f, 1.0f, WHITE);
+
+    DrawButton(settingsBtnVoltar, font, true);
+}
+
+void UpdateButtonsSettings(GameState *game, Vector2 mouse, GameScreen backScreen)
+{
+    UpdateBtnState(&settingsBtnVoltar, mouse);
+    if (settingsBtnVoltar.clicked)
+    {
+        game->currentScreen = backScreen;
+        return;
+    }
+    
+    Rectangle sliderBounds = { 600, 230, 300, 60 };
+    if (CheckCollisionPointRec(mouse, sliderBounds) && IsMouseButtonDown(MOUSE_LEFT_BUTTON))
+    {
+        float pct = (mouse.x - 600.0f) / 300.0f;
+        if (pct < 0.0f) pct = 0.0f;
+        if (pct > 1.0f) pct = 1.0f;
+        game->masterVolume = pct;
     }
 }

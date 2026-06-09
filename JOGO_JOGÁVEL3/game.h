@@ -32,7 +32,8 @@ typedef enum GameScreen
     SCREEN_VICTORY,
     SCREEN_SAVE_SELECT,
     SCREEN_LOAD_SELECT,
-    SCREEN_SKINS
+    SCREEN_SKINS,
+    SCREEN_SETTINGS
 } GameScreen;
 
 typedef enum EnemyState
@@ -214,10 +215,8 @@ typedef struct GameState
     // Metadados dos slots carregados na tela de seleção
     SaveSlotMeta slotsMeta[3];
     
-    // Asset Management (Texturas)
-    Texture2D heroSkins[5];
-    Texture2D enemyTiers[4];
-    Texture2D projSprites[4];
+    // Configurações
+    float masterVolume;
 } GameState;
 
 #endif // GAME_H
