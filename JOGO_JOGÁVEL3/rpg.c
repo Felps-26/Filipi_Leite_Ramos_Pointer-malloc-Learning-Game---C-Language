@@ -5,6 +5,7 @@
 #include "Telas/telas.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 // Globais para escalonamento da janela física e virtual (Letterbox)
 float g_scale = 1.0f;
@@ -35,7 +36,25 @@ int main(void)
 
     // Inicializa o estado global do jogo
     GameState game;
+    memset(&game, 0, sizeof(GameState));
     game.currentScreen = SCREEN_MENU;
+    
+    // Load Textures
+    game.heroSkins[0] = LoadTexture("Assets/Sprites/Hero/skin0_astronaut.png");
+    game.heroSkins[1] = LoadTexture("Assets/Sprites/Hero/skin1_exterminator.png");
+    game.heroSkins[2] = LoadTexture("Assets/Sprites/Hero/skin2_specter.png");
+    game.heroSkins[3] = LoadTexture("Assets/Sprites/Hero/skin3_solarknight.png");
+    game.heroSkins[4] = LoadTexture("Assets/Sprites/Hero/skin4_glitch.png");
+    
+    game.enemyTiers[0] = LoadTexture("Assets/Sprites/Enemies/Tier1/alien.png");
+    game.enemyTiers[1] = LoadTexture("Assets/Sprites/Enemies/Tier2/deformed.png");
+    game.enemyTiers[2] = LoadTexture("Assets/Sprites/Enemies/Tier3/distorcido.png");
+    game.enemyTiers[3] = LoadTexture("Assets/Sprites/Enemies/Tier3/boss_disforme.png");
+    
+    game.projSprites[0] = LoadTexture("Assets/Sprites/Projectiles/acid_arc.png");
+    game.projSprites[1] = LoadTexture("Assets/Sprites/Projectiles/bullet_spread.png");
+    game.projSprites[2] = LoadTexture("Assets/Sprites/Projectiles/void_bolt.png");
+    game.projSprites[3] = LoadTexture("Assets/Sprites/Projectiles/void_bolt.png"); // Reusing for boss for now
 
     // Variaveis de controle dos slots de save, texturas e screenshots
     Texture2D slotTextures[3] = { 0 };
@@ -173,6 +192,10 @@ int main(void)
                 }
                 break;
 
+            case SCREEN_SKINS:
+                UpdateButtonsSkins(&game, g_virtualMouse);
+                break;
+
             case SCREEN_CONTROLS:
                 UpdateButtonsControles(&game, g_virtualMouse);
                 break;
@@ -201,6 +224,7 @@ int main(void)
                     UnloadImage(quicksaveImg);
                     
                     game.saveLoaded = true;
+                    strcpy(game.notificationMsg, "GAME SAVED!");
                     game.timeElapsed = 0.0f;
                 }
                 else if (IsKeyPressed(KEY_F9))
@@ -210,6 +234,7 @@ int main(void)
                     {
                         CarregarJogoSlot(&game, 1);
                         game.saveLoaded = true;
+                        strcpy(game.notificationMsg, "GAME LOADED!");
                         game.timeElapsed = 0.0f;
                     }
                 }
@@ -244,6 +269,7 @@ int main(void)
                         }
                         game.currentScreen = SCREEN_GAMEPLAY;
                         game.saveLoaded = true;
+                        strcpy(game.notificationMsg, "GAME SAVED!");
                         game.timeElapsed = 0.0f;
                     }
                     else if (slotSelected == -1)
@@ -261,6 +287,7 @@ int main(void)
                         CarregarJogoSlot(&game, slotSelected);
                         game.currentScreen = SCREEN_GAMEPLAY;
                         game.saveLoaded = true;
+                        strcpy(game.notificationMsg, "GAME LOADED!");
                         game.timeElapsed = 0.0f;
                     }
                     else if (slotSelected == -1)
@@ -386,51 +413,18 @@ int main(void)
         previousScreen = game.currentScreen;
 
         // --------------------------------------------------------------------
-        // C. RENDERIZAÇÃO NA TEXTURA VIRTUAL (1280x720)
+        // C. RENDERIZAÇÃO NA TEXTURA VIRTUAL (1280x720) - APENAS MUNDO DO JOGO
         // --------------------------------------------------------------------
         BeginTextureMode(target);
         ClearBackground(BLACK);
 
-        switch (game.currentScreen)
+        if (game.currentScreen == SCREEN_GAMEPLAY || 
+            game.currentScreen == SCREEN_PAUSE || 
+            game.currentScreen == SCREEN_SAVE_SELECT ||
+            (game.currentScreen == SCREEN_LOAD_SELECT && loadSelectBackScreen == SCREEN_PAUSE))
         {
-            case SCREEN_MENU:
-                DrawTelaMenu(&game, g_gameFont, (float)GetTime());
-                break;
-
-            case SCREEN_CONTROLS:
-                DrawTelaControles(&game, g_gameFont);
-                break;
-
-            case SCREEN_GAMEPLAY:
-                DrawTelaGameplay(&game, g_gameFont, true);
-                break;
-
-            case SCREEN_PAUSE:
-                // Desenha a jogabilidade pausada no fundo
-                DrawTelaGameplay(&game, g_gameFont, false);
-                DrawTelaPausa(&game, g_gameFont);
-                break;
-
-            case SCREEN_SAVE_SELECT:
-                DrawTelaGameplay(&game, g_gameFont, false);
-                DrawTelaSaveSelect(&game, g_gameFont, g_virtualMouse, slotTextures, slotTexturesLoaded);
-                break;
-
-            case SCREEN_LOAD_SELECT:
-                if (loadSelectBackScreen == SCREEN_PAUSE)
-                {
-                    DrawTelaGameplay(&game, g_gameFont, false);
-                }
-                DrawTelaLoadSelect(&game, g_gameFont, g_virtualMouse, slotTextures, slotTexturesLoaded);
-                break;
-
-            case SCREEN_GAMEOVER:
-                DrawTelaGameOver(&game, g_gameFont);
-                break;
-
-            case SCREEN_VICTORY:
-                DrawTelaVitoria(&game, g_gameFont);
-                break;
+            // Desenha apenas o mundo 2D (sem o HUD) na textura virtual
+            DrawTelaGameplay(&game, g_gameFont, false);
         }
 
         EndTextureMode();
@@ -451,6 +445,58 @@ int main(void)
             WHITE
         );
 
+        // --------------------------------------------------------------------
+        // E. DESENHA INTERFACE E HUD COM NITIDEZ NATIVA NA TELA FÍSICA (hudCamera)
+        // --------------------------------------------------------------------
+        Camera2D hudCamera = { 0 };
+        hudCamera.zoom = g_scale;
+        hudCamera.offset = g_mouseOffset;
+        hudCamera.target = (Vector2){ 0.0f, 0.0f };
+        hudCamera.rotation = 0.0f;
+
+        BeginMode2D(hudCamera);
+
+        switch (game.currentScreen)
+        {
+            case SCREEN_MENU:
+                DrawTelaMenu(&game, g_gameFont, (float)GetTime());
+                break;
+
+            case SCREEN_SKINS:
+                DrawTelaSkins(&game, g_gameFont);
+                break;
+
+            case SCREEN_CONTROLS:
+                DrawTelaControles(&game, g_gameFont);
+                break;
+
+            case SCREEN_GAMEPLAY:
+                DrawHUD(&game, g_gameFont);
+                break;
+
+            case SCREEN_PAUSE:
+                DrawTelaPausa(&game, g_gameFont);
+                break;
+
+            case SCREEN_SAVE_SELECT:
+                DrawTelaSaveSelect(&game, g_gameFont, g_virtualMouse, slotTextures, slotTexturesLoaded);
+                break;
+
+            case SCREEN_LOAD_SELECT:
+                DrawTelaLoadSelect(&game, g_gameFont, g_virtualMouse, slotTextures, slotTexturesLoaded);
+                break;
+
+            case SCREEN_GAMEOVER:
+                DrawTelaGameOver(&game, g_gameFont);
+                break;
+
+            case SCREEN_VICTORY:
+                DrawTelaVitoria(&game, g_gameFont);
+                break;
+        }
+
+        EndMode2D();
+
         EndDrawing();
     }
 
@@ -462,6 +508,10 @@ finalizacao:
         UnloadMusicStream(musicB);
     }
     CloseAudioDevice();
+
+    for (int i = 0; i < 5; i++) UnloadTexture(game.heroSkins[i]);
+    for (int i = 0; i < 4; i++) UnloadTexture(game.enemyTiers[i]);
+    for (int i = 0; i < 4; i++) UnloadTexture(game.projSprites[i]);
 
     UnloadRenderTexture(target);
     if (g_gameFont.texture.id != GetFontDefault().texture.id)

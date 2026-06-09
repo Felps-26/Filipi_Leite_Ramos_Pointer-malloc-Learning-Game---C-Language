@@ -17,6 +17,7 @@
 #define MAX_ENEMIES 60
 #define MAX_POWERUPS 20
 #define MAX_PARTICLES 250
+#define MAX_PROJECTILES 100
 
 // ============================================================================
 // ENUMS
@@ -30,14 +31,34 @@ typedef enum GameScreen
     SCREEN_GAMEOVER,
     SCREEN_VICTORY,
     SCREEN_SAVE_SELECT,
-    SCREEN_LOAD_SELECT
+    SCREEN_LOAD_SELECT,
+    SCREEN_SKINS
 } GameScreen;
 
 typedef enum EnemyState
 {
-    PATROL,
-    CHASE
+    IDLE,
+    AGGRO,
+    ATTACK,
+    HURT,
+    DEATH
 } EnemyState;
+
+typedef enum EnemyTier
+{
+    TIER_1,
+    TIER_2,
+    TIER_3,
+    TIER_3_BOSS
+} EnemyTier;
+
+typedef enum ProjectileType
+{
+    PROJ_ACID_ARC,
+    PROJ_BULLET_SPREAD,
+    PROJ_VOID_BOLT,
+    PROJ_BOSS_BULLET
+} ProjectileType;
 
 typedef enum PowerUpType
 {
@@ -70,6 +91,12 @@ typedef struct Player
     
     // Combate
     float attackCooldown; // Tempo até o próximo ataque
+    
+    // Sprites e Skins
+    int activeSkin;
+    int currentFrame;
+    int spriteRow;
+    float frameTimer;
 } Player;
 
 typedef struct Enemy
@@ -81,8 +108,19 @@ typedef struct Enemy
     EnemyState state;
     Vector2 patrolTarget;
     float patrolTimer;
-    int type;        // 0 = Comum (Laranja/Vermelho), 1 = Rápido (Rosa/Roxo), 2 = Elite/Boss (Carmesim)
+    int type;        // 0 = Comum, 1 = Rápido, 2 = Elite
+    EnemyTier tier;
     bool active;     // Ativo/vivo no jogo
+    
+    // Sprites e Animação
+    int currentFrame;
+    int spriteRow;
+    float frameTimer;
+    
+    // Ranged
+    float cooldownTimer;
+    float chargeTimer;
+    bool isRanged;
 } Enemy;
 
 typedef struct PowerUp
@@ -103,6 +141,20 @@ typedef struct Particle
     float maxLifeTime;
     bool active;
 } Particle;
+
+typedef struct Projectile
+{
+    Vector2 position;
+    Vector2 velocity;
+    bool active;
+    ProjectileType type;
+    int damage;
+    Rectangle hitbox;
+    
+    // Sprites
+    int currentFrame;
+    float frameTimer;
+} Projectile;
 
 // ============================================================================
 // ESTRUTURAS DE UI
@@ -138,6 +190,7 @@ typedef struct GameState
     Enemy enemies[MAX_ENEMIES];
     PowerUp powerUps[MAX_POWERUPS];
     Particle particles[MAX_PARTICLES];
+    Projectile projectiles[MAX_PROJECTILES];
     
     int totalEnemiesKilled;
     int enemiesRemaining;
@@ -146,6 +199,7 @@ typedef struct GameState
     
     // Sistema
     bool saveLoaded;
+    char notificationMsg[32];
     float timeElapsed;
     float screenShake;
     
@@ -159,6 +213,11 @@ typedef struct GameState
 
     // Metadados dos slots carregados na tela de seleção
     SaveSlotMeta slotsMeta[3];
+    
+    // Asset Management (Texturas)
+    Texture2D heroSkins[5];
+    Texture2D enemyTiers[4];
+    Texture2D projSprites[4];
 } GameState;
 
 #endif // GAME_H

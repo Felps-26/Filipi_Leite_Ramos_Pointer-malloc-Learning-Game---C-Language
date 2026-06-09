@@ -59,19 +59,62 @@ void SpawnPowerUpAt(GameState *game, Vector2 position, int forcedType)
 }
 
 // ============================================================================
+// AUXILIAR: SPAWN DE PROJÉTEIS
+// ============================================================================
+void SpawnProjectile(GameState *game, Vector2 pos, Vector2 target, ProjectileType type, int dmg)
+{
+    for (int i = 0; i < MAX_PROJECTILES; i++)
+    {
+        if (!game->projectiles[i].active)
+        {
+            game->projectiles[i].position = pos;
+            Vector2 dir = Vector2Normalize(Vector2Subtract(target, pos));
+            float speed = 300.0f;
+            if (type == PROJ_ACID_ARC) speed = 250.0f;
+            if (type == PROJ_VOID_BOLT) speed = 400.0f;
+            
+            game->projectiles[i].velocity = Vector2Scale(dir, speed);
+            game->projectiles[i].active = true;
+            game->projectiles[i].type = type;
+            game->projectiles[i].damage = dmg;
+            game->projectiles[i].hitbox = (Rectangle){ pos.x - 10, pos.y - 10, 20, 20 };
+            game->projectiles[i].currentFrame = 0;
+            game->projectiles[i].frameTimer = 0.0f;
+            break;
+        }
+    }
+}
+
+// ============================================================================
 // INICIALIZAÇÃO DO JOGO
 // ============================================================================
 void InitGame(GameState *game)
 {
-    // Preserva o nome do jogador se ja estiver definido
+    // Preserva o nome do jogador e skin se ja estiver definido
     char tempName[16] = "";
+    int tempSkin = 0;
     if (game != NULL)
     {
         snprintf(tempName, sizeof(tempName), "%s", game->player.name);
+        tempSkin = game->player.activeSkin;
+    }
+
+    // Preserva texturas carregadas para não fechar o jogo
+    Texture2D tempHeroSkins[5] = { 0 };
+    Texture2D tempEnemyTiers[4] = { 0 };
+    Texture2D tempProjSprites[4] = { 0 };
+    if (game != NULL) {
+        memcpy(tempHeroSkins, game->heroSkins, sizeof(tempHeroSkins));
+        memcpy(tempEnemyTiers, game->enemyTiers, sizeof(tempEnemyTiers));
+        memcpy(tempProjSprites, game->projSprites, sizeof(tempProjSprites));
     }
 
     // Limpa o estado global
     *game = (GameState){ 0 };
+
+    memcpy(game->heroSkins, tempHeroSkins, sizeof(tempHeroSkins));
+    memcpy(game->enemyTiers, tempEnemyTiers, sizeof(tempEnemyTiers));
+    memcpy(game->projSprites, tempProjSprites, sizeof(tempProjSprites));
 
     if (tempName[0] != '\0')
     {
@@ -79,8 +122,9 @@ void InitGame(GameState *game)
     }
     else
     {
-        strcpy(game->player.name, "HEROI");
+        strcpy(game->player.name, "HERO");
     }
+    game->player.activeSkin = tempSkin;
 
     // Jogador inicial
     game->player.position = (Vector2){ MAP_WIDTH / 2.0f, MAP_HEIGHT / 2.0f };
@@ -149,6 +193,7 @@ void StartNextWave(GameState *game)
         {
             // Inimigo Comum (Patrulha / Persegue)
             game->enemies[i].type = 0;
+            game->enemies[i].tier = TIER_1;
             game->enemies[i].maxHp = 30 + game->wave * 10;
             game->enemies[i].hp = game->enemies[i].maxHp;
             game->enemies[i].speed = 140.0f + GetRandomValue(-20, 20);
@@ -157,6 +202,8 @@ void StartNextWave(GameState *game)
         {
             // Inimigo Rápido
             game->enemies[i].type = 1;
+            game->enemies[i].tier = TIER_2;
+            game->enemies[i].isRanged = true;
             game->enemies[i].maxHp = 20 + game->wave * 5;
             game->enemies[i].hp = game->enemies[i].maxHp;
             game->enemies[i].speed = 210.0f + GetRandomValue(-15, 15);
@@ -165,12 +212,19 @@ void StartNextWave(GameState *game)
         {
             // Inimigo Elite (Tamanho maior, muita vida)
             game->enemies[i].type = 2;
-            game->enemies[i].maxHp = 80 + game->wave * 25;
+            if (game->wave >= 5 && i == 0) {
+                game->enemies[i].tier = TIER_3_BOSS;
+                game->enemies[i].maxHp = 1000;
+            } else {
+                game->enemies[i].tier = TIER_3;
+                game->enemies[i].maxHp = 80 + game->wave * 25;
+            }
             game->enemies[i].hp = game->enemies[i].maxHp;
             game->enemies[i].speed = 90.0f + GetRandomValue(-10, 10);
+            game->enemies[i].isRanged = true;
         }
 
-        game->enemies[i].state = PATROL;
+        game->enemies[i].state = IDLE;
         game->enemies[i].patrolTarget = spawnPos;
         game->enemies[i].patrolTimer = (float)GetRandomValue(2, 5);
     }
@@ -247,7 +301,10 @@ void PlayerAttack(GameState *game)
             // Se o inimigo morreu
             if (game->enemies[i].hp <= 0)
             {
-                game->enemies[i].active = false;
+                game->enemies[i].state = DEATH;
+                game->enemies[i].spriteRow = 4;
+                game->enemies[i].currentFrame = 0;
+                game->enemies[i].active = false; // Em um sistema ideal, a animação terminaria antes de desativar
                 game->enemiesRemaining--;
                 game->totalEnemiesKilled++;
 
@@ -342,6 +399,21 @@ void UpdateGameplay(GameState *game, float delta)
         }
     }
 
+    // Player Animations
+    game->player.frameTimer += delta;
+    if (game->player.frameTimer > 0.15f) {
+        game->player.currentFrame = (game->player.currentFrame + 1) % 4;
+        game->player.frameTimer = 0.0f;
+    }
+
+    if (game->player.attackCooldown > 0.0f) {
+        game->player.spriteRow = 2; // Attack/Jump
+    } else if (moveDir.x != 0.0f || moveDir.y != 0.0f) {
+        game->player.spriteRow = 1; // Move
+    } else {
+        game->player.spriteRow = 0; // Idle
+    }
+
     // Limites do mapa para o jogador
     float playerRadius = 20.0f;
     if (game->player.position.x < playerRadius) game->player.position.x = playerRadius;
@@ -428,45 +500,75 @@ void UpdateGameplay(GameState *game, float delta)
         if (!game->enemies[i].active) continue;
 
         Enemy *enemy = &game->enemies[i];
-        enemy->patrolTimer -= delta;
+        
+        // Atualiza animação
+        enemy->frameTimer += delta;
+        if (enemy->frameTimer > 0.15f) {
+            enemy->currentFrame = (enemy->currentFrame + 1) % 4;
+            enemy->frameTimer = 0.0f;
+        }
 
-        // Distância até o jogador
         float distToPlayer = Vector2Distance(game->player.position, enemy->position);
 
-        // Máquina de estados simples: perseguição vs patrulha
-        if (distToPlayer < 360.0f)
-        {
-            enemy->state = CHASE;
+        // State Machine Update
+        if (enemy->state == HURT) {
+            enemy->cooldownTimer -= delta;
+            if (enemy->cooldownTimer <= 0.0f) enemy->state = IDLE;
         }
-        else
-        {
-            if (enemy->state == CHASE)
-            {
-                // Se acabou de perder o rastro, redefine objetivo de patrulha
-                enemy->state = PATROL;
-                enemy->patrolTarget = enemy->position;
-                enemy->patrolTimer = (float)GetRandomValue(1, 3);
+        else if (enemy->state == ATTACK) {
+            enemy->chargeTimer -= delta;
+            if (enemy->chargeTimer <= 0.0f) {
+                // Atira
+                ProjectileType ptype = PROJ_ACID_ARC;
+                if (enemy->tier == TIER_2) ptype = PROJ_BULLET_SPREAD;
+                if (enemy->tier >= TIER_3) ptype = PROJ_VOID_BOLT;
+                
+                int dmg = 10 + enemy->tier * 5;
+                SpawnProjectile(game, enemy->position, game->player.position, ptype, dmg);
+                if (enemy->tier == TIER_3_BOSS) {
+                    Vector2 off1 = { game->player.position.x + 100, game->player.position.y };
+                    Vector2 off2 = { game->player.position.x - 100, game->player.position.y };
+                    SpawnProjectile(game, enemy->position, off1, ptype, dmg);
+                    SpawnProjectile(game, enemy->position, off2, ptype, dmg);
+                }
+                
+                enemy->state = IDLE;
+                enemy->cooldownTimer = 1.2f; // cooldown
             }
         }
+        else if (enemy->isRanged && distToPlayer < 400.0f && enemy->cooldownTimer <= 0.0f) {
+            enemy->state = ATTACK;
+            enemy->chargeTimer = 0.6f;
+        }
+        else if (distToPlayer < 450.0f) {
+            enemy->state = AGGRO;
+        }
+        else {
+            enemy->state = IDLE;
+            enemy->patrolTimer -= delta;
+        }
+        
+        if (enemy->cooldownTimer > 0.0f && enemy->state != HURT && enemy->state != ATTACK) {
+            enemy->cooldownTimer -= delta;
+        }
 
-        // Ações do Estado
-        if (enemy->state == CHASE)
+        // Definindo linha de sprite
+        if (enemy->state == IDLE) enemy->spriteRow = 0;
+        else if (enemy->state == AGGRO) enemy->spriteRow = 1;
+        else if (enemy->state == ATTACK) enemy->spriteRow = 2;
+        else if (enemy->state == HURT) enemy->spriteRow = 3;
+        else if (enemy->state == DEATH) enemy->spriteRow = 4;
+
+        // Ações de Movimentação
+        if (enemy->state == AGGRO && !enemy->isRanged)
         {
             Vector2 chaseDir = Vector2Subtract(game->player.position, enemy->position);
             chaseDir = Vector2Normalize(chaseDir);
-            
-            // Fator de velocidade conforme tipo de inimigo e modo perseguição
-            float chaseSpeedMult = 1.05f;
-            if (enemy->type == 1) chaseSpeedMult = 1.25f; // Rápido persegue furioso
-            
-            enemy->position = Vector2Add(
-                enemy->position,
-                Vector2Scale(chaseDir, enemy->speed * chaseSpeedMult * delta)
-            );
+            float chaseMult = (enemy->tier == TIER_2) ? 1.25f : 1.05f;
+            enemy->position = Vector2Add(enemy->position, Vector2Scale(chaseDir, enemy->speed * chaseMult * delta));
         }
-        else // PATROL
+        else if (enemy->state == IDLE)
         {
-            // Se chegou ao alvo ou tempo esgotou, escolhe novo local próximo
             float distToTarget = Vector2Distance(enemy->position, enemy->patrolTarget);
             if (distToTarget < 15.0f || enemy->patrolTimer <= 0.0f)
             {
@@ -474,22 +576,10 @@ void UpdateGameplay(GameState *game, float delta)
                 float radius = (float)GetRandomValue(100, 300);
                 enemy->patrolTarget.x = enemy->position.x + cosf(angle) * radius;
                 enemy->patrolTarget.y = enemy->position.y + sinf(angle) * radius;
-                
-                // Limita alvo da patrulha no mapa
-                if (enemy->patrolTarget.x < 100) enemy->patrolTarget.x = 100;
-                if (enemy->patrolTarget.x > MAP_WIDTH - 100) enemy->patrolTarget.x = MAP_WIDTH - 100;
-                if (enemy->patrolTarget.y < 100) enemy->patrolTarget.y = 100;
-                if (enemy->patrolTarget.y > MAP_HEIGHT - 100) enemy->patrolTarget.y = MAP_HEIGHT - 100;
-
                 enemy->patrolTimer = (float)GetRandomValue(3, 7);
             }
-
-            Vector2 patrolDir = Vector2Subtract(enemy->patrolTarget, enemy->position);
-            patrolDir = Vector2Normalize(patrolDir);
-            enemy->position = Vector2Add(
-                enemy->position,
-                Vector2Scale(patrolDir, enemy->speed * delta)
-            );
+            Vector2 patrolDir = Vector2Normalize(Vector2Subtract(enemy->patrolTarget, enemy->position));
+            enemy->position = Vector2Add(enemy->position, Vector2Scale(patrolDir, enemy->speed * delta));
         }
 
         // Mantém inimigos nos limites do mapa
@@ -537,9 +627,52 @@ void UpdateGameplay(GameState *game, float delta)
             if (pushDir.x == 0.0f && pushDir.y == 0.0f) pushDir = (Vector2){ 0.0f, 1.0f };
             pushDir = Vector2Normalize(pushDir);
             enemy->position = Vector2Add(enemy->position, Vector2Scale(pushDir, 50.0f));
-            enemy->state = PATROL;
-            enemy->patrolTarget = enemy->position;
-            enemy->patrolTimer = 2.0f;
+            enemy->state = HURT;
+            enemy->cooldownTimer = 0.5f; // stun duration
+        }
+    }
+
+    // ------------------------------------------------------------------------
+    // 6.5 ATUALIZA PROJÉTEIS
+    // ------------------------------------------------------------------------
+    for (int i = 0; i < MAX_PROJECTILES; i++)
+    {
+        if (game->projectiles[i].active)
+        {
+            game->projectiles[i].position = Vector2Add(game->projectiles[i].position, Vector2Scale(game->projectiles[i].velocity, delta));
+            game->projectiles[i].hitbox.x = game->projectiles[i].position.x - 10;
+            game->projectiles[i].hitbox.y = game->projectiles[i].position.y - 10;
+            
+            game->projectiles[i].frameTimer += delta;
+            if (game->projectiles[i].frameTimer > 0.1f) {
+                game->projectiles[i].currentFrame = (game->projectiles[i].currentFrame + 1) % 4;
+                game->projectiles[i].frameTimer = 0.0f;
+            }
+
+            // Colisão com jogador
+            Rectangle pRect = { game->player.position.x - 20, game->player.position.y - 20, 40, 40 };
+            if (CheckCollisionRecs(game->projectiles[i].hitbox, pRect))
+            {
+                game->projectiles[i].active = false;
+                if (game->player.shieldTimer > 0.0f) {
+                    SpawnParticleExplosion(game, game->player.position, SKYBLUE, 10, 80.0f, 150.0f, 3.0f, 0.4f);
+                } else {
+                    game->player.hp -= game->projectiles[i].damage;
+                    game->screenShake = 0.3f;
+                    SpawnParticleExplosion(game, game->player.position, RED, 10, 50.0f, 100.0f, 3.0f, 0.5f);
+                    if (game->player.hp <= 0) {
+                        game->player.hp = 0;
+                        game->currentScreen = SCREEN_GAMEOVER;
+                        return;
+                    }
+                }
+            }
+            
+            // Remove se sair do mapa longe
+            if (game->projectiles[i].position.x < -100 || game->projectiles[i].position.x > MAP_WIDTH + 100 ||
+                game->projectiles[i].position.y < -100 || game->projectiles[i].position.y > MAP_HEIGHT + 100) {
+                game->projectiles[i].active = false;
+            }
         }
     }
 
@@ -605,7 +738,7 @@ void SalvarJogoSlot(GameState *game, int slot)
         char dateBuffer[32];
         strftime(dateBuffer, sizeof(dateBuffer), "%d/%m/%Y %H:%M", tm_info);
 
-        fprintf(arquivo, "%s\n", (game->player.name[0] != '\0') ? game->player.name : "HEROI");
+        fprintf(arquivo, "%s\n", (game->player.name[0] != '\0') ? game->player.name : "HERO");
         fprintf(arquivo, "%d\n", game->player.level);
         fprintf(arquivo, "%d\n", game->player.score);
         fprintf(arquivo, "%d\n", game->wave);
@@ -622,6 +755,7 @@ void SalvarJogoSlot(GameState *game, int slot)
         fprintf(arquivo, "%d\n", game->player.xpNeeded);
         fprintf(arquivo, "%d\n", game->player.attackPower);
         fprintf(arquivo, "%f\n", game->player.speed);
+        fprintf(arquivo, "%d\n", game->player.activeSkin);
 
         // 2. Estado do Mundo
         fprintf(arquivo, "%d\n", game->wave);
@@ -636,13 +770,15 @@ void SalvarJogoSlot(GameState *game, int slot)
         {
             if (game->enemies[i].active)
             {
-                fprintf(arquivo, "%f %f %d %d %d %f\n",
+                fprintf(arquivo, "%f %f %d %d %d %f %d %d\n",
                         game->enemies[i].position.x,
                         game->enemies[i].position.y,
                         game->enemies[i].hp,
                         game->enemies[i].maxHp,
                         game->enemies[i].type,
-                        game->enemies[i].speed);
+                        game->enemies[i].speed,
+                        game->enemies[i].tier,
+                        game->enemies[i].isRanged);
             }
         }
 
@@ -668,8 +804,20 @@ void CarregarJogoSlot(GameState *game, int slot)
         float shakeOld = game->screenShake;
         GameScreen oldScreen = game->currentScreen;
 
+        // Preserva texturas carregadas
+        Texture2D tempHeroSkins[5];
+        Texture2D tempEnemyTiers[4];
+        Texture2D tempProjSprites[4];
+        memcpy(tempHeroSkins, game->heroSkins, sizeof(tempHeroSkins));
+        memcpy(tempEnemyTiers, game->enemyTiers, sizeof(tempEnemyTiers));
+        memcpy(tempProjSprites, game->projSprites, sizeof(tempProjSprites));
+
         // Limpa estados de buffs temporários
         *game = (GameState){ 0 };
+
+        memcpy(game->heroSkins, tempHeroSkins, sizeof(tempHeroSkins));
+        memcpy(game->enemyTiers, tempEnemyTiers, sizeof(tempEnemyTiers));
+        memcpy(game->projSprites, tempProjSprites, sizeof(tempProjSprites));
         game->currentScreen = oldScreen;
         game->screenShake = shakeOld;
 
@@ -702,6 +850,7 @@ void CarregarJogoSlot(GameState *game, int slot)
         fscanf(arquivo, "%d\n", &game->player.xpNeeded);
         fscanf(arquivo, "%d\n", &game->player.attackPower);
         fscanf(arquivo, "%f\n", &game->player.speed);
+        if (fscanf(arquivo, "%d\n", &game->player.activeSkin) <= 0) game->player.activeSkin = 0;
 
         // 2. Estado do Mundo
         fscanf(arquivo, "%d\n", &game->wave);
@@ -715,15 +864,21 @@ void CarregarJogoSlot(GameState *game, int slot)
         {
             if (i < MAX_ENEMIES)
             {
-                fscanf(arquivo, "%f %f %d %d %d %f\n",
+                int t = 0, isR = 0;
+                fscanf(arquivo, "%f %f %d %d %d %f %d %d\n",
                         &game->enemies[i].position.x,
                         &game->enemies[i].position.y,
                         &game->enemies[i].hp,
                         &game->enemies[i].maxHp,
                         &game->enemies[i].type,
-                        &game->enemies[i].speed);
+                        &game->enemies[i].speed,
+                        &t,
+                        &isR);
+                game->enemies[i].tier = (EnemyTier)t;
+                game->enemies[i].isRanged = (bool)isR;
+                
                 game->enemies[i].active = true;
-                game->enemies[i].state = PATROL;
+                game->enemies[i].state = IDLE;
                 game->enemies[i].patrolTarget = game->enemies[i].position;
                 game->enemies[i].patrolTimer = 3.0f;
             }

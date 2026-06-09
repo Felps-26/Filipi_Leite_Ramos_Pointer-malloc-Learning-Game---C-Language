@@ -15,29 +15,30 @@ static void DrawSciFiBox(Rectangle r, Color col);
 // DEFINIÇÃO DOS BOTÕES DAS TELAS (GLOBAIS DA UI)
 // ============================================================================
 static UIButton menuButtons[] = {
-    { { 490, 275, 300, 48 }, "NOVO JOGO", false, false },
-    { { 490, 338, 300, 48 }, "CARREGAR JOGO", false, false },
-    { { 490, 401, 300, 48 }, "CONTROLES", false, false },
-    { { 490, 464, 300, 48 }, "SAIR", false, false }
+    { { 490, 265, 300, 45 }, "NEW GAME", false, false },
+    { { 490, 318, 300, 45 }, "LOAD GAME", false, false },
+    { { 490, 371, 300, 45 }, "SKINS", false, false },
+    { { 490, 424, 300, 45 }, "CONTROLS", false, false },
+    { { 490, 477, 300, 45 }, "EXIT", false, false }
 };
 
 static UIButton pauseButtons[] = {
-    { { 490, 220, 300, 50 }, "VOLTAR AO JOGO", false, false },
-    { { 490, 290, 300, 50 }, "SALVAR PROGRESSO", false, false },
-    { { 490, 360, 300, 50 }, "CARREGAR ANTERIOR", false, false },
-    { { 490, 430, 300, 50 }, "MENU PRINCIPAL", false, false }
+    { { 490, 220, 300, 50 }, "RESUME GAME", false, false },
+    { { 490, 290, 300, 50 }, "SAVE PROGRESS", false, false },
+    { { 490, 360, 300, 50 }, "LOAD PREVIOUS", false, false },
+    { { 490, 430, 300, 50 }, "MAIN MENU", false, false }
 };
 
-static UIButton controlsButton = { { 490, 580, 300, 50 }, "VOLTAR", false, false };
+static UIButton controlsButton = { { 490, 580, 300, 50 }, "BACK", false, false };
 
 static UIButton gameOverButtons[] = {
-    { { 490, 390, 300, 50 }, "TENTAR NOVAMENTE", false, false },
-    { { 490, 460, 300, 50 }, "MENU PRINCIPAL", false, false }
+    { { 490, 390, 300, 50 }, "TRY AGAIN", false, false },
+    { { 490, 460, 300, 50 }, "MAIN MENU", false, false }
 };
 
 static UIButton victoryButtons[] = {
-    { { 490, 390, 300, 50 }, "NOVA JORNADA", false, false },
-    { { 490, 460, 300, 50 }, "MENU PRINCIPAL", false, false }
+    { { 490, 390, 300, 50 }, "NEW JOURNEY", false, false },
+    { { 490, 460, 300, 50 }, "MAIN MENU", false, false }
 };
 
 // ============================================================================
@@ -143,7 +144,7 @@ void DrawTelaMenu(GameState *game, Font font, float time)
     DrawTextEx(font, titulo, titlePos, (float)titleFontSize, 2.0f, (Color){ 0, 229, 255, 255 });
 
     // Subtítulo
-    const char *sub = "Bem vindo ao vazio!";
+    const char *sub = "Welcome to the Void!";
     int subSizeVal = 18;
     Vector2 subSize = MeasureTextEx(font, sub, (float)subSizeVal, 1.0f);
     DrawTextEx(font, sub, (Vector2){ (SCREEN_WIDTH / 2.0f) - (subSize.x / 2.0f), 135.0f + titleOffsetY }, 
@@ -169,7 +170,7 @@ void DrawTelaMenu(GameState *game, Font font, float time)
     DrawRectangleRoundedLines(nameBounds, 0.2f, 6, boxBorder);
     
     // Rótulo acima do campo
-    DrawTextEx(font, "Seu Personagem:", (Vector2){ nameBounds.x + 5, nameBounds.y - 18 }, 14.0f, 1.0f, GRAY);
+    DrawTextEx(font, "Your Character:", (Vector2){ nameBounds.x + 5, nameBounds.y - 18 }, 14.0f, 1.0f, GRAY);
     
     // Desenha o texto do nome ou placeholder
     int fontSize = 20;
@@ -187,12 +188,12 @@ void DrawTelaMenu(GameState *game, Font font, float time)
         }
         else
         {
-            Vector2 textSz = MeasureTextEx(font, "DIGITE SEU NOME...", (float)fontSize, 1.0f);
+            Vector2 textSz = MeasureTextEx(font, "ENTER YOUR NAME...", (float)fontSize, 1.0f);
             Vector2 textPos = {
                 nameBounds.x + (nameBounds.width / 2.0f) - (textSz.x / 2.0f),
                 nameBounds.y + (nameBounds.height / 2.0f) - (textSz.y / 2.0f)
             };
-            DrawTextEx(font, "DIGITE SEU NOME...", textPos, (float)fontSize, 1.0f, Fade(GRAY, 0.5f));
+            DrawTextEx(font, "ENTER YOUR NAME...", textPos, (float)fontSize, 1.0f, Fade(GRAY, 0.5f));
         }
     }
     else
@@ -231,7 +232,7 @@ void DrawTelaMenu(GameState *game, Font font, float time)
     }
 
     // Desenha Botões do Menu
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 5; i++)
     {
         DrawButton(menuButtons[i], font, (i == 1) ? anySaveExists : true);
     }
@@ -243,7 +244,7 @@ void DrawTelaMenu(GameState *game, Font font, float time)
     DrawTextEx(font, verText, (Vector2){ 640.0f - verSize.x / 2.0f, 545.0f }, 12.0f, 1.0f, Fade((Color){ 0, 229, 255, 255 }, 0.5f));
 
     // Rodapé
-    DrawTextEx(font, "Pressione ESC para pausar/sair | Desenvolvido com Raylib", (Vector2){ 20, SCREEN_HEIGHT - 35 }, 16.0f, 1.0f, DARKGRAY);
+    DrawTextEx(font, "Press ESC to pause/exit | Powered by Raylib", (Vector2){ 20, SCREEN_HEIGHT - 35 }, 16.0f, 1.0f, DARKGRAY);
 }
 
 bool UpdateButtonsMenu(GameState *game, Vector2 mouse)
@@ -331,7 +332,7 @@ bool UpdateButtonsMenu(GameState *game, Vector2 mouse)
     // Evita hover e clique acidentais nos botões do menu durante a digitação
     if (!game->nameInputActive)
     {
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < 5; i++)
         {
             if (i == 1 && !anySaveExists)
             {
@@ -346,7 +347,7 @@ bool UpdateButtonsMenu(GameState *game, Vector2 mouse)
     }
     else
     {
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < 5; i++)
         {
             menuButtons[i].hover = false;
             menuButtons[i].clicked = false;
@@ -386,12 +387,16 @@ bool UpdateButtonsMenu(GameState *game, Vector2 mouse)
             game->currentScreen = SCREEN_LOAD_SELECT;
         }
     }
-    else if (menuButtons[2].clicked) // CONTROLES
+    else if (menuButtons[2].clicked) // SKINS
+    {
+        game->currentScreen = SCREEN_SKINS;
+    }
+    else if (menuButtons[3].clicked) // CONTROLES
     {
         game->currentScreen = SCREEN_CONTROLS;
     }
 
-    return menuButtons[3].clicked; // Retorna true se clicou em SAIR
+    return menuButtons[4].clicked; // Retorna true se clicou em SAIR
 }
 
 // ============================================================================
@@ -402,7 +407,7 @@ void DrawTelaControles(GameState *game, Font font)
     DrawRectangleGradientV(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 
                            (Color){ 14, 10, 26, 255 }, (Color){ 20, 15, 35, 255 });
 
-    DrawTextEx(font, "CONTROLES & REGRAS", (Vector2){ 420, 60 }, 42.0f, 1.5f, SKYBLUE);
+    DrawTextEx(font, "CONTROLS & RULES", (Vector2){ 450, 60 }, 42.0f, 1.5f, SKYBLUE);
 
     // Painel de Instruções centralizado
     DrawRectangleRounded((Rectangle){ 240, 140, 800, 400 }, 0.05f, 6, Fade(BLACK, 0.45f));
@@ -412,21 +417,21 @@ void DrawTelaControles(GameState *game, Font font)
     int spacing = 38;
     
     // Atalhos
-    DrawTextEx(font, "W, A, S, D ou SETAS", (Vector2){ 280, (float)startY }, 22.0f, 1.0f, YELLOW);
-    DrawTextEx(font, "- Mover o Herói pelo campo", (Vector2){ 540, (float)startY }, 22.0f, 1.0f, WHITE);
+    DrawTextEx(font, "W, A, S, D or ARROW KEYS", (Vector2){ 280, (float)startY }, 22.0f, 1.0f, YELLOW);
+    DrawTextEx(font, "- Move the Hero through the field", (Vector2){ 540, (float)startY }, 22.0f, 1.0f, WHITE);
     
-    DrawTextEx(font, "ESPAÇO ou CLIQUE ESQUERDO", (Vector2){ 280, (float)(startY + spacing) }, 22.0f, 1.0f, YELLOW);
-    DrawTextEx(font, "- Realizar Ataque Circular (Slash)", (Vector2){ 540, (float)(startY + spacing) }, 22.0f, 1.0f, WHITE);
+    DrawTextEx(font, "SPACE or LEFT CLICK", (Vector2){ 280, (float)(startY + spacing) }, 22.0f, 1.0f, YELLOW);
+    DrawTextEx(font, "- Perform Circular Attack (Slash)", (Vector2){ 540, (float)(startY + spacing) }, 22.0f, 1.0f, WHITE);
 
-    DrawTextEx(font, "TECLA ESC", (Vector2){ 280, (float)(startY + spacing * 2) }, 22.0f, 1.0f, YELLOW);
-    DrawTextEx(font, "- Pausar partida / Acessar Menu", (Vector2){ 540, (float)(startY + spacing * 2) }, 22.0f, 1.0f, WHITE);
+    DrawTextEx(font, "ESC KEY", (Vector2){ 280, (float)(startY + spacing * 2) }, 22.0f, 1.0f, YELLOW);
+    DrawTextEx(font, "- Pause game / Open Main Menu", (Vector2){ 540, (float)(startY + spacing * 2) }, 22.0f, 1.0f, WHITE);
 
-    DrawTextEx(font, "SALVAR & CARREGAR", (Vector2){ 280, (float)(startY + spacing * 3.5f) }, 22.0f, 1.0f, YELLOW);
-    DrawTextEx(font, "- Acesse as opções de slots pausando a partida (ESC)", (Vector2){ 540, (float)(startY + spacing * 3.5f) }, 22.0f, 1.0f, WHITE);
+    DrawTextEx(font, "SAVE & LOAD PROGRESS", (Vector2){ 280, (float)(startY + spacing * 3.5f) }, 22.0f, 1.0f, YELLOW);
+    DrawTextEx(font, "- Access slot options by pausing the game (ESC)", (Vector2){ 540, (float)(startY + spacing * 3.5f) }, 22.0f, 1.0f, WHITE);
 
     // Legenda de Itens
-    DrawTextEx(font, "LEGENDA DE POWER-UPS (AMARELOS NO MAPA):", (Vector2){ 280, (float)(startY + spacing * 5.5) }, 20.0f, 1.0f, GOLD);
-    DrawTextEx(font, "Cura (+35 HP) | Velocidade (+60%) | Escudo (Invencivel) | Ataque Dobrado (x2 Dano)", (Vector2){ 280, (float)(startY + spacing * 6.5) }, 18.0f, 1.0f, LIGHTGRAY);
+    DrawTextEx(font, "POWER-UPS LEGEND (YELLOW ON MAP):", (Vector2){ 280, (float)(startY + spacing * 5.5) }, 20.0f, 1.0f, GOLD);
+    DrawTextEx(font, "Heal (+35 HP) | Speed (+60%) | Shield (Invincible) | Double Damage (x2 Damage)", (Vector2){ 280, (float)(startY + spacing * 6.5) }, 18.0f, 1.0f, LIGHTGRAY);
 
     // Botão voltar
     DrawButton(controlsButton, font, true);
@@ -453,7 +458,7 @@ void DrawTelaPausa(GameState *game, Font font)
     DrawRectangleRounded((Rectangle){ 420, 130, 440, 400 }, 0.05f, 6, Fade((Color){ 12, 8, 22, 255 }, 0.92f));
     DrawRectangleRoundedLines((Rectangle){ 420, 130, 440, 400 }, 0.05f, 6, (Color){ 84, 52, 148, 255 });
 
-    DrawTextEx(font, "PARTIDA PAUSADA", (Vector2){ 505, 165 }, 28.0f, 1.0f, (Color){ 0, 229, 255, 255 });
+    DrawTextEx(font, "GAME PAUSED", (Vector2){ 540, 165 }, 28.0f, 1.0f, (Color){ 0, 229, 255, 255 });
 
     for (int i = 0; i < 4; i++)
     {
@@ -507,7 +512,7 @@ void DrawTelaGameOver(GameState *game, Font font)
 
     // Título pulsante
     float pulse = 1.0f + sinf((float)GetTime() * 4.0f) * 0.05f;
-    const char *txt = "FIM DE JOGO";
+    const char *txt = "GAME OVER";
     int fSize = 65;
     Vector2 txtSize = MeasureTextEx(font, txt, (float)fSize, 2.0f);
     Vector2 txtPos = {
@@ -519,9 +524,9 @@ void DrawTelaGameOver(GameState *game, Font font)
     // Painel de estatísticas (Estilo SciFi)
     DrawSciFiBox((Rectangle){ 400, 200, 480, 160 }, MAROON);
 
-    DrawTextEx(font, TextFormat("Pontuacao Final: %d", game->player.score), (Vector2){ 440, 225 }, 22.0f, 1.0f, WHITE);
-    DrawTextEx(font, TextFormat("Nivel Alcancado: Lvl %d", game->player.level), (Vector2){ 440, 260 }, 22.0f, 1.0f, WHITE);
-    DrawTextEx(font, TextFormat("Inimigos Derrotados: %d", game->totalEnemiesKilled), (Vector2){ 440, 295 }, 22.0f, 1.0f, WHITE);
+    DrawTextEx(font, TextFormat("Final Score: %d", game->player.score), (Vector2){ 440, 225 }, 22.0f, 1.0f, WHITE);
+    DrawTextEx(font, TextFormat("Level Reached: Lvl %d", game->player.level), (Vector2){ 440, 260 }, 22.0f, 1.0f, WHITE);
+    DrawTextEx(font, TextFormat("Enemies Defeated: %d", game->totalEnemiesKilled), (Vector2){ 440, 295 }, 22.0f, 1.0f, WHITE);
 
     // Botões
     for (int i = 0; i < 2; i++)
@@ -568,8 +573,9 @@ void DrawTelaVitoria(GameState *game, Font font)
     }
 
     // Título
+    // Título
     float pulse = 1.0f + sinf((float)GetTime() * 3.5f) * 0.04f;
-    const char *txt = "VITÓRIA SUPREMA!";
+    const char *txt = "SUPREME VICTORY!";
     int fSize = 65;
     Vector2 txtSize = MeasureTextEx(font, txt, (float)fSize, 2.0f);
     Vector2 txtPos = {
@@ -579,16 +585,16 @@ void DrawTelaVitoria(GameState *game, Font font)
     DrawTextEx(font, txt, txtPos, (float)fSize * pulse, 2.0f, GOLD);
 
     // Parabéns
-    const char *congrats = "Voce defendeu o reino dos blocos contra todas as hordas!";
+    const char *congrats = "You defended the block kingdom against all hordes!";
     Vector2 congratsSize = MeasureTextEx(font, congrats, 20.0f, 1.0f);
     DrawTextEx(font, congrats, (Vector2){ (SCREEN_WIDTH / 2.0f) - (congratsSize.x / 2.0f), 160.0f }, 20.0f, 1.0f, SKYBLUE);
 
     // Painel de estatísticas (Estilo SciFi)
     DrawSciFiBox((Rectangle){ 400, 200, 480, 160 }, GOLD);
 
-    DrawTextEx(font, TextFormat("Pontuacao de Ouro: %d", game->player.score), (Vector2){ 440, 225 }, 22.0f, 1.0f, GOLD);
-    DrawTextEx(font, TextFormat("Nivel Final: Lvl %d", game->player.level), (Vector2){ 440, 260 }, 22.0f, 1.0f, WHITE);
-    DrawTextEx(font, TextFormat("Total de Inimigos Mortos: %d", game->totalEnemiesKilled), (Vector2){ 440, 295 }, 22.0f, 1.0f, WHITE);
+    DrawTextEx(font, TextFormat("Gold Score: %d", game->player.score), (Vector2){ 440, 225 }, 22.0f, 1.0f, GOLD);
+    DrawTextEx(font, TextFormat("Final Level: Lvl %d", game->player.level), (Vector2){ 440, 260 }, 22.0f, 1.0f, WHITE);
+    DrawTextEx(font, TextFormat("Total Enemies Killed: %d", game->totalEnemiesKilled), (Vector2){ 440, 295 }, 22.0f, 1.0f, WHITE);
 
     // Botões
     for (int i = 0; i < 2; i++)
@@ -664,7 +670,7 @@ static void DrawSciFiBox(Rectangle r, Color col)
     DrawLineEx((Vector2){ r.x + r.width, r.y + r.height }, (Vector2){ r.x + r.width, r.y + r.height - len }, thickness, col);
 }
 
-static void DrawHUD(GameState *game, Font font)
+void DrawHUD(GameState *game, Font font)
 {
     // ------------------------------------------------------------------------
     // A. BARRA DE STATUS DO JOGADOR (HP & XP)
@@ -709,11 +715,11 @@ static void DrawHUD(GameState *game, Font font)
     Rectangle waveBox = { 490, 20, 300, 60 };
     DrawSciFiBox(waveBox, (Color){ 0, 229, 255, 255 });
 
-    const char *waveTxt = TextFormat("ONDA DE ATAQUE: %d / 5", game->wave);
+    const char *waveTxt = TextFormat("ATTACK WAVE: %d / 5", game->wave);
     Vector2 waveTxtSize = MeasureTextEx(font, waveTxt, 16.0f, 1.0f);
     DrawTextEx(font, waveTxt, (Vector2){ 640.0f - waveTxtSize.x / 2.0f, 28.0f }, 16.0f, 1.0f, GOLD);
 
-    const char *remTxt = TextFormat("Inimigos Restantes: %d", game->enemiesRemaining);
+    const char *remTxt = TextFormat("Enemies Remaining: %d", game->enemiesRemaining);
     Vector2 remTxtSize = MeasureTextEx(font, remTxt, 13.0f, 1.0f);
     DrawTextEx(font, remTxt, (Vector2){ 640.0f - remTxtSize.x / 2.0f, 48.0f }, 13.0f, 1.0f, WHITE);
 
@@ -721,7 +727,7 @@ static void DrawHUD(GameState *game, Font font)
     // C. PONTUAÇÃO (SUPERIOR DIREITO)
     // ------------------------------------------------------------------------
     DrawSciFiBox((Rectangle){ 900, 20, 150, 55 }, (Color){ 0, 229, 255, 255 });
-    DrawTextEx(font, "PONTOS", (Vector2){ 915, 27 }, 12.0f, 1.0f, GRAY);
+    DrawTextEx(font, "SCORE", (Vector2){ 915, 27 }, 12.0f, 1.0f, GRAY);
     DrawTextEx(font, TextFormat("%06d", game->player.score), (Vector2){ 915, 42 }, 20.0f, 1.0f, YELLOW);
 
     // ------------------------------------------------------------------------
@@ -737,7 +743,7 @@ static void DrawHUD(GameState *game, Font font)
         DrawRectangle((int)rBuff.x, (int)rBuff.y, 4, (int)rBuff.height, YELLOW);
         DrawRectangleLinesEx(rBuff, 1.0f, Fade(YELLOW, 0.25f));
         
-        DrawTextEx(font, TextFormat("VELOCIDADE: %.1fs", game->player.speedTimer), 
+        DrawTextEx(font, TextFormat("SPEED: %.1fs", game->player.speedTimer), 
                    (Vector2){ rBuff.x + 12, rBuff.y + 7 }, 12.0f, 1.0f, YELLOW);
         buffCount++;
     }
@@ -750,7 +756,7 @@ static void DrawHUD(GameState *game, Font font)
         DrawRectangle((int)rBuff.x, (int)rBuff.y, 4, (int)rBuff.height, SKYBLUE);
         DrawRectangleLinesEx(rBuff, 1.0f, Fade(SKYBLUE, 0.25f));
         
-        DrawTextEx(font, TextFormat("ESCUDO: %.1fs", game->player.shieldTimer), 
+        DrawTextEx(font, TextFormat("SHIELD: %.1fs", game->player.shieldTimer), 
                    (Vector2){ rBuff.x + 12, rBuff.y + 7 }, 12.0f, 1.0f, SKYBLUE);
         buffCount++;
     }
@@ -763,7 +769,7 @@ static void DrawHUD(GameState *game, Font font)
         DrawRectangle((int)rBuff.x, (int)rBuff.y, 4, (int)rBuff.height, ORANGE);
         DrawRectangleLinesEx(rBuff, 1.0f, Fade(ORANGE, 0.25f));
         
-        DrawTextEx(font, TextFormat("DANO x2: %.1fs", game->player.attackBoostTimer), 
+        DrawTextEx(font, TextFormat("DAMAGE x2: %.1fs", game->player.attackBoostTimer), 
                    (Vector2){ rBuff.x + 12, rBuff.y + 7 }, 12.0f, 1.0f, ORANGE);
         buffCount++;
     }
@@ -836,7 +842,7 @@ static void DrawHUD(GameState *game, Font font)
             {
                 float scale = radarRadius / radarRange;
                 Vector2 dotPos = Vector2Add(radarCenter, Vector2Scale(diff, scale));
-                Color dotCol = (game->enemies[i].type == 2) ? MAROON : (game->enemies[i].state == CHASE) ? RED : ORANGE;
+                Color dotCol = (game->enemies[i].type == 2) ? MAROON : (game->enemies[i].state == AGGRO) ? RED : ORANGE;
                 float dotSize = (game->enemies[i].type == 2) ? 3.5f : 2.0f;
                 DrawCircleV(dotPos, dotSize, dotCol);
             }
@@ -849,14 +855,16 @@ static void DrawHUD(GameState *game, Font font)
     DrawCircleLines(radarCenter.x, radarCenter.y, pPulse + 2.0f, Fade(SKYBLUE, 0.5f));
 
     // Rótulo do Radar
-    DrawTextEx(font, "RADAR LOCAL", (Vector2){ radarCenter.x - 38.0f, radarCenter.y + radarRadius + 8.0f }, 11.0f, 1.0f, GRAY);
+    DrawTextEx(font, "LOCAL RADAR", (Vector2){ radarCenter.x - 38.0f, radarCenter.y + radarRadius + 8.0f }, 11.0f, 1.0f, GRAY);
     
     // Notificação de salvamento no rodapé
     if (game->saveLoaded)
     {
         DrawRectangleRounded((Rectangle){ 490, 670, 300, 30 }, 0.4f, 4, Fade(GREEN, 0.2f));
         DrawRectangleRoundedLines((Rectangle){ 490, 670, 300, 30 }, 0.4f, 4, GREEN);
-        DrawTextEx(font, "JOGO CARREGADO COM SUCESSO!", (Vector2){ 515, 678 }, 14.0f, 1.0f, GREEN);
+        
+        Vector2 textSz = MeasureTextEx(font, game->notificationMsg, 14.0f, 1.0f);
+        DrawTextEx(font, game->notificationMsg, (Vector2){ 490.0f + 150.0f - textSz.x/2.0f, 678.0f }, 14.0f, 1.0f, GREEN);
         
         // Some após 3 segundos
         if (game->timeElapsed > 3.0f) game->saveLoaded = false;
@@ -868,8 +876,28 @@ static void DrawHUD(GameState *game, Font font)
 // ============================================================================
 void DrawTelaGameplay(GameState *game, Font font, bool drawHUD)
 {
-    // Limpa tela com tom azul profundo do void
-    ClearBackground((Color){ 8, 6, 16, 255 });
+    // Determina a cor de fundo (Normal ou de acordo com a fase do Boss)
+    Color bgColor = (Color){ 8, 6, 16, 255 }; // Padrão
+    Color gridColor = Fade(PURPLE, 0.15f);
+    
+    for (int i = 0; i < MAX_ENEMIES; i++) {
+        if (game->enemies[i].active && game->enemies[i].tier == TIER_3_BOSS) {
+            float hpPercent = (float)game->enemies[i].hp / game->enemies[i].maxHp;
+            if (hpPercent < 0.33f) {
+                // Phase 3: Vermelho escuro distorcido
+                bgColor = (Color){ 30, 5, 5, 255 };
+                gridColor = Fade(RED, 0.25f);
+            } else if (hpPercent < 0.66f) {
+                // Phase 2: Roxo corrompido
+                bgColor = (Color){ 20, 5, 25, 255 };
+                gridColor = Fade(MAGENTA, 0.2f);
+            }
+            break;
+        }
+    }
+
+    // Limpa tela com tom do void
+    ClearBackground(bgColor);
 
     // ------------------------------------------------------------------------
     // 1. DESENHA O MUNDO DO JOGO (AFETADO PELA CÂMERA 2D)
@@ -879,11 +907,11 @@ void DrawTelaGameplay(GameState *game, Font font, bool drawHUD)
     // Desenha grid do solo
     for (int x = 0; x <= MAP_WIDTH; x += 160)
     {
-        DrawLine(x, 0, x, MAP_HEIGHT, Fade(PURPLE, 0.15f));
+        DrawLine(x, 0, x, MAP_HEIGHT, gridColor);
     }
     for (int y = 0; y <= MAP_HEIGHT; y += 160)
     {
-        DrawLine(0, y, MAP_WIDTH, y, Fade(PURPLE, 0.15f));
+        DrawLine(0, y, MAP_WIDTH, y, gridColor);
     }
 
     // Desenha bordas de limite do campo de batalha (Thick frame)
@@ -919,46 +947,40 @@ void DrawTelaGameplay(GameState *game, Font font, bool drawHUD)
         }
     }
 
-    // B. Desenha os Inimigos (Quadrados vermelhos/laranjas/roxos com barras de HP)
+    // B. Desenha os Inimigos (Sprites)
     for (int i = 0; i < MAX_ENEMIES; i++)
     {
         if (game->enemies[i].active)
         {
             Enemy *enemy = &game->enemies[i];
             
-            // Determina tamanho e cor baseados no tipo do inimigo e estado
-            float size = 42.0f;
-            Color colBase = (enemy->state == CHASE) ? RED : ORANGE;
-
-            if (enemy->type == 1) // Rápido
+            // Texture rendering
+            Texture2D tex = game->enemyTiers[enemy->tier];
+            if (tex.id != 0)
             {
-                size = 32.0f;
-                colBase = (enemy->state == CHASE) ? VIOLET : PINK;
+                float srcSize = (enemy->tier == TIER_3_BOSS) ? 512.0f : 128.0f;
+                float destSize = (enemy->tier == TIER_3_BOSS) ? 512.0f : 128.0f;
+                
+                Rectangle sourceRec = { enemy->currentFrame * srcSize, enemy->spriteRow * srcSize, srcSize, srcSize };
+                // Flip texture se indo para esquerda
+                if (enemy->position.x > game->player.position.x)
+                {
+                    sourceRec.width = -srcSize;
+                }
+                
+                Rectangle destRec = { enemy->position.x, enemy->position.y, destSize, destSize };
+                Vector2 origin = { destSize / 2.0f, destSize / 2.0f };
+                
+                Color tint = (enemy->state == HURT) ? RED : WHITE;
+                DrawTexturePro(tex, sourceRec, destRec, origin, 0.0f, tint);
             }
-            else if (enemy->type == 2) // Elite/Boss
-            {
-                size = 68.0f;
-                colBase = (enemy->state == CHASE) ? MAROON : PURPLE;
-            }
-
-            // Quadrado do inimigo
-            Rectangle rEnemy = { enemy->position.x - size / 2.0f, enemy->position.y - size / 2.0f, size, size };
-            DrawRectangleRec(rEnemy, colBase);
-            DrawRectangleLinesEx(rEnemy, 2.5f, BLACK);
-
-            // Olhos simples para caracterizar a entidade inimiga (quadrados pretos direcionados ao herói)
-            Vector2 lookDir = Vector2Subtract(game->player.position, enemy->position);
-            lookDir = Vector2Normalize(lookDir);
-            float eyeOffset = size / 4.0f;
-            Vector2 leftEye = { enemy->position.x - eyeOffset + lookDir.x * 4, enemy->position.y - eyeOffset + lookDir.y * 3 };
-            Vector2 rightEye = { enemy->position.x + eyeOffset + lookDir.x * 4, enemy->position.y - eyeOffset + lookDir.y * 3 };
-            DrawRectangle(leftEye.x - 3, leftEye.y - 3, 6, 6, BLACK);
-            DrawRectangle(rightEye.x - 3, rightEye.y - 3, 6, 6, BLACK);
-
+            
             // Barra de HP individual acima do inimigo
+            float size = (enemy->tier == TIER_3_BOSS) ? 400.0f : 60.0f;
             float barW = size * 1.1f;
             float barH = 6.0f;
-            Rectangle rHPBg = { enemy->position.x - barW / 2.0f, enemy->position.y - size/2.0f - 14.0f, barW, barH };
+            float yOffset = (enemy->tier == TIER_3_BOSS) ? 200.0f : 50.0f;
+            Rectangle rHPBg = { enemy->position.x - barW / 2.0f, enemy->position.y - yOffset, barW, barH };
             DrawRectangleRec(rHPBg, Fade(RED, 0.4f));
             
             float enemyHpPercent = (float)enemy->hp / enemy->maxHp;
@@ -971,39 +993,59 @@ void DrawTelaGameplay(GameState *game, Font font, bool drawHUD)
         }
     }
 
-    // C. Desenha o Herói (Quadrado azul estilizado)
-    float playerSize = 45.0f;
-    Rectangle rPlayer = { game->player.position.x - playerSize / 2.0f, game->player.position.y - playerSize / 2.0f, playerSize, playerSize };
+    // Desenha Projéteis
+    for (int i = 0; i < MAX_PROJECTILES; i++)
+    {
+        if (game->projectiles[i].active)
+        {
+            Projectile *p = &game->projectiles[i];
+            Texture2D tex = game->projSprites[p->type];
+            if (tex.id != 0)
+            {
+                float srcSize = 32.0f;
+                Rectangle sourceRec = { p->currentFrame * srcSize, 0, srcSize, srcSize };
+                Rectangle destRec = { p->position.x, p->position.y, srcSize * 2, srcSize * 2 };
+                Vector2 origin = { srcSize, srcSize };
+                
+                float rot = atan2f(p->velocity.y, p->velocity.x) * RAD2DEG;
+                DrawTexturePro(tex, sourceRec, destRec, origin, rot, WHITE);
+            }
+        }
+    }
+
+    // C. Desenha o Herói (Sprite Baseado na Skin Ativa)
+    float playerSize = 45.0f; // Para colisões ou hitbox visuais (se precisar)
     
-    // Cor padrão ou dourada se ataque ativado
-    Color pColor = SKYBLUE;
-    if (game->player.attackBoostTimer > 0.0f) pColor = GOLD;
-
-    DrawRectangleRec(rPlayer, pColor);
-    DrawRectangleLinesEx(rPlayer, 3.0f, WHITE);
-
-    // Olhinhos focados no herói
-    Vector2 mouseRaw = GetMousePosition();
-    Vector2 virtualMouse; // Converte tela física em virtual
-    float scaleX = (float)GetScreenWidth() / SCREEN_WIDTH;
-    float scaleY = (float)GetScreenHeight() / SCREEN_HEIGHT;
-    float scale = (scaleX < scaleY) ? scaleX : scaleY;
-    float mOffsetX = (GetScreenWidth() - (SCREEN_WIDTH * scale)) * 0.5f;
-    float mOffsetY = (GetScreenHeight() - (SCREEN_HEIGHT * scale)) * 0.5f;
-    virtualMouse.x = (mouseRaw.x - mOffsetX) / scale;
-    virtualMouse.y = (mouseRaw.y - mOffsetY) / scale;
-
-    // Obtém coordenadas de mundo do mouse virtual para os olhos olharem pro mouse
-    Vector2 worldMouse = GetScreenToWorld2D(virtualMouse, game->camera);
-    Vector2 lookDirHero = Vector2Subtract(worldMouse, game->player.position);
-    lookDirHero = Vector2Normalize(lookDirHero);
-    
-    Vector2 pLeftEye = { game->player.position.x - 10 + lookDirHero.x * 5, game->player.position.y - 10 + lookDirHero.y * 4 };
-    Vector2 pRightEye = { game->player.position.x + 10 + lookDirHero.x * 5, game->player.position.y - 10 + lookDirHero.y * 4 };
-    DrawRectangle(pLeftEye.x - 4, pLeftEye.y - 4, 8, 8, WHITE);
-    DrawRectangle(pRightEye.x - 4, pRightEye.y - 4, 8, 8, WHITE);
-    DrawRectangle(pLeftEye.x - 2 + lookDirHero.x * 2, pLeftEye.y - 2 + lookDirHero.y * 2, 4, 4, BLACK);
-    DrawRectangle(pRightEye.x - 2 + lookDirHero.x * 2, pRightEye.y - 2 + lookDirHero.y * 2, 4, 4, BLACK);
+    Texture2D pTex = game->heroSkins[game->player.activeSkin];
+    if (pTex.id != 0)
+    {
+        float srcSize = 128.0f;
+        Rectangle sourceRec = { game->player.currentFrame * srcSize, game->player.spriteRow * srcSize, srcSize, srcSize };
+        
+        Vector2 mouseRaw = GetMousePosition();
+        Vector2 virtualMouse; // Converte tela física em virtual
+        float scaleX = (float)GetScreenWidth() / SCREEN_WIDTH;
+        float scaleY = (float)GetScreenHeight() / SCREEN_HEIGHT;
+        float scale = (scaleX < scaleY) ? scaleX : scaleY;
+        float mOffsetX = (GetScreenWidth() - (SCREEN_WIDTH * scale)) * 0.5f;
+        float mOffsetY = (GetScreenHeight() - (SCREEN_HEIGHT * scale)) * 0.5f;
+        virtualMouse.x = (mouseRaw.x - mOffsetX) / scale;
+        virtualMouse.y = (mouseRaw.y - mOffsetY) / scale;
+        Vector2 worldMouse = GetScreenToWorld2D(virtualMouse, game->camera);
+        
+        if (worldMouse.x < game->player.position.x)
+        {
+            sourceRec.width = -srcSize; // Flip horizontal
+        }
+        
+        Rectangle destRec = { game->player.position.x, game->player.position.y, srcSize, srcSize };
+        Vector2 origin = { srcSize / 2.0f, srcSize / 2.0f };
+        
+        Color tint = WHITE;
+        if (game->player.attackBoostTimer > 0.0f) tint = GOLD;
+        
+        DrawTexturePro(pTex, sourceRec, destRec, origin, 0.0f, tint);
+    }
 
     // D. Efeito do Escudo (Circulo ciano translúcido ao redor)
     if (game->player.shieldTimer > 0.0f)
@@ -1061,11 +1103,11 @@ void DrawTelaSaveSelect(GameState *game, Font font, Vector2 mouse, Texture2D slo
     DrawRectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, Fade((Color){ 10, 8, 22, 255 }, 0.75f));
 
     // Título
-    const char *titulo = "SALVAR PROGRESSO";
+    const char *titulo = "SAVE PROGRESS";
     Vector2 titleSize = MeasureTextEx(font, titulo, 42.0f, 1.5f);
     DrawTextEx(font, titulo, (Vector2){ (SCREEN_WIDTH / 2.0f) - (titleSize.x / 2.0f), 40.0f }, 42.0f, 1.5f, SKYBLUE);
     
-    const char *sub = "Escolha um slot para salvar o jogo atual";
+    const char *sub = "Choose a slot to save the current game";
     Vector2 subSize = MeasureTextEx(font, sub, 18.0f, 1.0f);
     DrawTextEx(font, sub, (Vector2){ (SCREEN_WIDTH / 2.0f) - (subSize.x / 2.0f), 90.0f }, 18.0f, 1.0f, GRAY);
 
@@ -1096,8 +1138,8 @@ void DrawTelaSaveSelect(GameState *game, Font font, Vector2 mouse, Texture2D slo
         else
         {
             DrawRectangleLinesEx(imgBounds, 1.0f, GRAY);
-            Vector2 textSz = MeasureTextEx(font, "SEM PREVIEW", 18.0f, 1.0f);
-            DrawTextEx(font, "SEM PREVIEW",
+            Vector2 textSz = MeasureTextEx(font, "NO PREVIEW", 18.0f, 1.0f);
+            DrawTextEx(font, "NO PREVIEW",
                        (Vector2){ imgBounds.x + imgBounds.width / 2.0f - textSz.x / 2.0f, imgBounds.y + imgBounds.height / 2.0f - textSz.y / 2.0f },
                        18.0f, 1.0f, DARKGRAY);
         }
@@ -1108,7 +1150,7 @@ void DrawTelaSaveSelect(GameState *game, Font font, Vector2 mouse, Texture2D slo
         // Rótulo do Slot
         if (i == 0)
         {
-            DrawTextEx(font, "SLOT 1 (PADRÃO)", (Vector2){ cardX + 20, 335 }, 22.0f, 1.0f, GOLD);
+            DrawTextEx(font, "SLOT 1 (DEFAULT)", (Vector2){ cardX + 20, 335 }, 22.0f, 1.0f, GOLD);
         }
         else
         {
@@ -1117,11 +1159,11 @@ void DrawTelaSaveSelect(GameState *game, Font font, Vector2 mouse, Texture2D slo
 
         if (meta.exists)
         {
-            DrawTextEx(font, TextFormat("Heroi: %s", meta.name), (Vector2){ cardX + 20, 365 }, 18.0f, 1.0f, WHITE);
-            DrawTextEx(font, TextFormat("Nivel: Lvl %d", meta.level), (Vector2){ cardX + 20, 390 }, 18.0f, 1.0f, WHITE);
-            DrawTextEx(font, TextFormat("Onda: %d / 5", meta.wave), (Vector2){ cardX + 20, 415 }, 18.0f, 1.0f, WHITE);
-            DrawTextEx(font, TextFormat("Pontos: %d", meta.score), (Vector2){ cardX + 20, 440 }, 18.0f, 1.0f, WHITE);
-            DrawTextEx(font, TextFormat("Data: %s", meta.date), (Vector2){ cardX + 20, 470 }, 14.0f, 1.0f, GRAY);
+            DrawTextEx(font, TextFormat("Hero: %s", meta.name), (Vector2){ cardX + 20, 365 }, 18.0f, 1.0f, WHITE);
+            DrawTextEx(font, TextFormat("Level: Lvl %d", meta.level), (Vector2){ cardX + 20, 390 }, 18.0f, 1.0f, WHITE);
+            DrawTextEx(font, TextFormat("Wave: %d / 5", meta.wave), (Vector2){ cardX + 20, 415 }, 18.0f, 1.0f, WHITE);
+            DrawTextEx(font, TextFormat("Score: %d", meta.score), (Vector2){ cardX + 20, 440 }, 18.0f, 1.0f, WHITE);
+            DrawTextEx(font, TextFormat("Date: %s", meta.date), (Vector2){ cardX + 20, 470 }, 14.0f, 1.0f, GRAY);
 
             // Botão Apagar Save
             Rectangle deleteBounds = { cardX + 20, 495, 280, 35 };
@@ -1131,28 +1173,28 @@ void DrawTelaSaveSelect(GameState *game, Font font, Vector2 mouse, Texture2D slo
             DrawRectangleRoundedLines(deleteBounds, 0.25f, 6, RED);
             
             int delFontSize = 16;
-            Vector2 delTextSz = MeasureTextEx(font, "APAGAR SAVE", (float)delFontSize, 1.0f);
-            DrawTextEx(font, "APAGAR SAVE", (Vector2){ deleteBounds.x + deleteBounds.width/2.0f - delTextSz.x/2.0f, deleteBounds.y + deleteBounds.height/2.0f - delTextSz.y/2.0f }, (float)delFontSize, 1.0f, WHITE);
+            Vector2 delTextSz = MeasureTextEx(font, "DELETE SAVE", (float)delFontSize, 1.0f);
+            DrawTextEx(font, "DELETE SAVE", (Vector2){ deleteBounds.x + deleteBounds.width/2.0f - delTextSz.x/2.0f, deleteBounds.y + deleteBounds.height/2.0f - delTextSz.y/2.0f }, (float)delFontSize, 1.0f, WHITE);
 
             // Hover do card como um todo (evitando desenhar se mouse está sobre o botão apagar)
             if (hover && !deleteHover)
             {
-                DrawTextEx(font, "CLIQUE PARA SOBRESCREVER", (Vector2){ cardX + 20, 545 }, 14.0f, 1.0f, RED);
+                DrawTextEx(font, "CLICK TO OVERWRITE", (Vector2){ cardX + 20, 545 }, 14.0f, 1.0f, RED);
             }
         }
         else
         {
-            DrawTextEx(font, "SLOT VAZIO", (Vector2){ cardX + 20, 365 }, 20.0f, 1.0f, DARKGRAY);
+            DrawTextEx(font, "EMPTY SLOT", (Vector2){ cardX + 20, 365 }, 20.0f, 1.0f, DARKGRAY);
 
             if (hover)
             {
-                DrawTextEx(font, "CLIQUE PARA SALVAR JOGO", (Vector2){ cardX + 20, 545 }, 14.0f, 1.0f, GREEN);
+                DrawTextEx(font, "CLICK TO SAVE GAME", (Vector2){ cardX + 20, 545 }, 14.0f, 1.0f, GREEN);
             }
         }
     }
 
     // Botão Voltar
-    UIButton btnVoltar = { { 490, 600, 300, 50 }, "VOLTAR", false, false };
+    UIButton btnVoltar = { { 490, 600, 300, 50 }, "BACK", false, false };
     btnVoltar.hover = CheckCollisionPointRec(mouse, btnVoltar.bounds);
     DrawButton(btnVoltar, font, true);
 }
@@ -1163,11 +1205,11 @@ void DrawTelaLoadSelect(GameState *game, Font font, Vector2 mouse, Texture2D slo
     DrawRectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, Fade((Color){ 10, 8, 22, 255 }, 0.75f));
 
     // Título
-    const char *titulo = "CARREGAR JOGO";
+    const char *titulo = "LOAD GAME";
     Vector2 titleSize = MeasureTextEx(font, titulo, 42.0f, 1.5f);
     DrawTextEx(font, titulo, (Vector2){ (SCREEN_WIDTH / 2.0f) - (titleSize.x / 2.0f), 40.0f }, 42.0f, 1.5f, SKYBLUE);
     
-    const char *sub = "Escolha um save para continuar sua jornada";
+    const char *sub = "Choose a save to continue your journey";
     Vector2 subSize = MeasureTextEx(font, sub, 18.0f, 1.0f);
     DrawTextEx(font, sub, (Vector2){ (SCREEN_WIDTH / 2.0f) - (subSize.x / 2.0f), 90.0f }, 18.0f, 1.0f, GRAY);
 
@@ -1205,8 +1247,8 @@ void DrawTelaLoadSelect(GameState *game, Font font, Vector2 mouse, Texture2D slo
         else
         {
             DrawRectangleLinesEx(imgBounds, 1.0f, DARKGRAY);
-            Vector2 textSz = MeasureTextEx(font, "SEM PREVIEW", 18.0f, 1.0f);
-            DrawTextEx(font, "SEM PREVIEW",
+            Vector2 textSz = MeasureTextEx(font, "NO PREVIEW", 18.0f, 1.0f);
+            DrawTextEx(font, "NO PREVIEW",
                        (Vector2){ imgBounds.x + imgBounds.width / 2.0f - textSz.x / 2.0f, imgBounds.y + imgBounds.height / 2.0f - textSz.y / 2.0f },
                        18.0f, 1.0f, DARKGRAY);
         }
@@ -1214,7 +1256,7 @@ void DrawTelaLoadSelect(GameState *game, Font font, Vector2 mouse, Texture2D slo
         // Rótulo do Slot
         if (i == 0)
         {
-            DrawTextEx(font, "SLOT 1 (PADRÃO)", (Vector2){ cardX + 20, 335 }, 22.0f, 1.0f, GOLD);
+            DrawTextEx(font, "SLOT 1 (DEFAULT)", (Vector2){ cardX + 20, 335 }, 22.0f, 1.0f, GOLD);
         }
         else
         {
@@ -1223,11 +1265,11 @@ void DrawTelaLoadSelect(GameState *game, Font font, Vector2 mouse, Texture2D slo
 
         if (meta.exists)
         {
-            DrawTextEx(font, TextFormat("Heroi: %s", meta.name), (Vector2){ cardX + 20, 365 }, 18.0f, 1.0f, WHITE);
-            DrawTextEx(font, TextFormat("Nivel: Lvl %d", meta.level), (Vector2){ cardX + 20, 390 }, 18.0f, 1.0f, WHITE);
-            DrawTextEx(font, TextFormat("Onda: %d / 5", meta.wave), (Vector2){ cardX + 20, 415 }, 18.0f, 1.0f, WHITE);
-            DrawTextEx(font, TextFormat("Pontos: %d", meta.score), (Vector2){ cardX + 20, 440 }, 18.0f, 1.0f, WHITE);
-            DrawTextEx(font, TextFormat("Data: %s", meta.date), (Vector2){ cardX + 20, 470 }, 14.0f, 1.0f, GRAY);
+            DrawTextEx(font, TextFormat("Hero: %s", meta.name), (Vector2){ cardX + 20, 365 }, 18.0f, 1.0f, WHITE);
+            DrawTextEx(font, TextFormat("Level: Lvl %d", meta.level), (Vector2){ cardX + 20, 390 }, 18.0f, 1.0f, WHITE);
+            DrawTextEx(font, TextFormat("Wave: %d / 5", meta.wave), (Vector2){ cardX + 20, 415 }, 18.0f, 1.0f, WHITE);
+            DrawTextEx(font, TextFormat("Score: %d", meta.score), (Vector2){ cardX + 20, 440 }, 18.0f, 1.0f, WHITE);
+            DrawTextEx(font, TextFormat("Date: %s", meta.date), (Vector2){ cardX + 20, 470 }, 14.0f, 1.0f, GRAY);
 
             // Botão Apagar Save
             Rectangle deleteBounds = { cardX + 20, 495, 280, 35 };
@@ -1237,23 +1279,23 @@ void DrawTelaLoadSelect(GameState *game, Font font, Vector2 mouse, Texture2D slo
             DrawRectangleRoundedLines(deleteBounds, 0.25f, 6, RED);
             
             int delFontSize = 16;
-            Vector2 delTextSz = MeasureTextEx(font, "APAGAR SAVE", (float)delFontSize, 1.0f);
-            DrawTextEx(font, "APAGAR SAVE", (Vector2){ deleteBounds.x + deleteBounds.width/2.0f - delTextSz.x/2.0f, deleteBounds.y + deleteBounds.height/2.0f - delTextSz.y/2.0f }, (float)delFontSize, 1.0f, WHITE);
+            Vector2 delTextSz = MeasureTextEx(font, "DELETE SAVE", (float)delFontSize, 1.0f);
+            DrawTextEx(font, "DELETE SAVE", (Vector2){ deleteBounds.x + deleteBounds.width/2.0f - delTextSz.x/2.0f, deleteBounds.y + deleteBounds.height/2.0f - delTextSz.y/2.0f }, (float)delFontSize, 1.0f, WHITE);
 
             // Hover do card como um todo
             if (hover && !deleteHover)
             {
-                DrawTextEx(font, "CLIQUE PARA CARREGAR", (Vector2){ cardX + 20, 545 }, 14.0f, 1.0f, SKYBLUE);
+                DrawTextEx(font, "CLICK TO LOAD", (Vector2){ cardX + 20, 545 }, 14.0f, 1.0f, SKYBLUE);
             }
         }
         else
         {
-            DrawTextEx(font, "SLOT VAZIO", (Vector2){ cardX + 20, 365 }, 20.0f, 1.0f, DARKGRAY);
+            DrawTextEx(font, "EMPTY SLOT", (Vector2){ cardX + 20, 365 }, 20.0f, 1.0f, DARKGRAY);
         }
     }
 
     // Botão Voltar
-    UIButton btnVoltar = { { 490, 600, 300, 50 }, "VOLTAR", false, false };
+    UIButton btnVoltar = { { 490, 600, 300, 50 }, "BACK", false, false };
     btnVoltar.hover = CheckCollisionPointRec(mouse, btnVoltar.bounds);
     DrawButton(btnVoltar, font, true);
 }
@@ -1354,4 +1396,99 @@ int UpdateButtonsLoadSelect(GameState *game, Vector2 mouse, Texture2D slotTextur
     }
 
     return 0;
+}
+
+// ============================================================================
+// 9. TELA: SKINS
+// ============================================================================
+static int skinSelecionadaPreview = 0;
+static UIButton skinsBtnVoltar = { { 490, 600, 300, 50 }, "BACK", false, false };
+
+static const char *skinNames[5] = {
+    "ASTRONAUT",
+    "EXTERMINATOR BOT",
+    "VOID SPECTER",
+    "SOLAR KNIGHT",
+    "GLITCH FORM"
+};
+
+void DrawTelaSkins(GameState *game, Font font)
+{
+    // Fundo escuro
+    DrawRectangleGradientV(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 
+                           (Color){ 10, 8, 20, 255 }, (Color){ 20, 12, 36, 255 });
+
+    DrawTextEx(font, "HERO SKINS", (Vector2){ 520, 60 }, 42.0f, 1.5f, SKYBLUE);
+
+    // Lista de Skins na Esquerda
+    DrawSciFiBox((Rectangle){ 100, 150, 400, 400 }, (Color){ 0, 229, 255, 255 });
+    
+    for (int i = 0; i < 5; i++)
+    {
+        Rectangle btnRect = { 120, 180 + i * 60, 360, 45 };
+        
+        Color bg = Fade((Color){ 26, 21, 44, 255 }, 0.75f);
+        Color border = (Color){ 104, 76, 172, 255 };
+        
+        if (i == game->player.activeSkin)
+        {
+            bg = Fade((Color){ 0, 229, 255, 255 }, 0.5f);
+            border = WHITE;
+        }
+        else if (i == skinSelecionadaPreview)
+        {
+            bg = Fade(YELLOW, 0.3f);
+        }
+        
+        DrawRectangleRounded(btnRect, 0.2f, 4, bg);
+        DrawRectangleRoundedLines(btnRect, 0.2f, 4, border);
+        
+        DrawTextEx(font, skinNames[i], (Vector2){ btnRect.x + 20, btnRect.y + 12 }, 20.0f, 1.0f, WHITE);
+        
+        if (i == game->player.activeSkin)
+        {
+            DrawTextEx(font, "[EQUIPPED]", (Vector2){ btnRect.x + 230, btnRect.y + 15 }, 14.0f, 1.0f, WHITE);
+        }
+    }
+
+    // Preview do Lado Direito
+    DrawSciFiBox((Rectangle){ 600, 150, 500, 400 }, (Color){ 0, 229, 255, 255 });
+    
+    DrawTextEx(font, "PREVIEW", (Vector2){ 780, 170 }, 28.0f, 1.0f, YELLOW);
+    
+    // Desenha o frame atual da skin selecionada no preview
+    Texture2D tex = game->heroSkins[skinSelecionadaPreview];
+    if (tex.id != 0)
+    {
+        // Pega um frame de idle (linha 0) para preview
+        int frame = (int)(GetTime() * 6.0f) % 4; // Animação rápida pra preview
+        Rectangle sourceRec = { frame * 128.0f, 0.0f, 128.0f, 128.0f };
+        Rectangle destRec = { 720, 240, 256, 256 }; // Duplica o tamanho
+        DrawTexturePro(tex, sourceRec, destRec, (Vector2){ 128, 128 }, 0.0f, WHITE);
+    }
+    
+    DrawButton(skinsBtnVoltar, font, true);
+}
+
+void UpdateButtonsSkins(GameState *game, Vector2 mouse)
+{
+    UpdateBtnState(&skinsBtnVoltar, mouse);
+    if (skinsBtnVoltar.clicked)
+    {
+        game->currentScreen = SCREEN_MENU;
+        return;
+    }
+
+    for (int i = 0; i < 5; i++)
+    {
+        Rectangle btnRect = { 120, 180 + i * 60, 360, 45 };
+        if (CheckCollisionPointRec(mouse, btnRect))
+        {
+            skinSelecionadaPreview = i;
+            if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+            {
+                game->player.activeSkin = i;
+            }
+        }
+    }
 }
