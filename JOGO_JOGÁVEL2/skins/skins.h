@@ -28,7 +28,7 @@ typedef struct {
     Color color;
 } Paddle;
 
-// Desenha a raquete com o visual da skin escolhida
-void DrawPaddleSkin(Paddle *paddle, PaddleSkin skin);
+// Desenha a raquete com o visual da skin escolhida e olhos seguindo um ponto
+void DrawPaddleSkin(Paddle *paddle, PaddleSkin skin, Vector2 focusPoint);
 
 #endif // SKINS_H
